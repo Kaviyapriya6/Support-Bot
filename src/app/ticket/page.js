@@ -1,5 +1,7 @@
-'use client'
+'use client';
 import React, { useState, useEffect } from 'react';
+
+
 import {
   Box,
   Typography,
@@ -23,11 +25,11 @@ import {
   Stack,
   Divider,
   Alert,
-  Snackbar
+  Snackbar,
+  Slide
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  Add as AddIcon,
   Reply as ReplyIcon,
   Bookmark as BookmarkIcon,
   BookmarkBorder as BookmarkBorderIcon,
@@ -36,8 +38,15 @@ import {
   Close as CloseIcon,
   Delete as DeleteIcon,
   Archive as ArchiveIcon,
-  Flag as FlagIcon
+  Flag as FlagIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
+import  CreateTicketForm from '../../components/Creationform';
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
 
 const TicketManagementPage = () => {
   const [tickets, setTickets] = useState([
@@ -71,13 +80,24 @@ const TicketManagementPage = () => {
   const [filteredTickets, setFilteredTickets] = useState(tickets);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [editTicketOpen, setEditTicketOpen] = useState(false);
+//   const [editTicketOpen, setEditTicketOpen] = useState(false);
+//   const [addTicketOpen, setAddTicketOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  const [newTicket, setNewTicket] = useState({
+  const [editData, setEditData] = useState({
     title: '',
     description: '',
     priority: 'Medium',
+    status: 'Open',
+    assignee: '',
+    email: ''
+  });
+
+  const [addData, setAddData] = useState({
+    title: '',
+    description: '',
+    priority: 'Medium',
+    status: 'Open',
     assignee: '',
     email: ''
   });
@@ -104,6 +124,23 @@ const TicketManagementPage = () => {
     );
     setFilteredTickets(filtered);
   }, [searchTerm, tickets]);
+
+  const generateTicketId = () => {
+    const maxId = tickets.reduce((max, ticket) => {
+      const num = parseInt(ticket.id.replace('TID', ''));
+      return num > max ? num : max;
+    }, 0);
+    return `TID${String(maxId + 1).padStart(3, '0')}`;
+  };
+
+  const getAvatarInitial = (name) => {
+    return name.charAt(0).toUpperCase();
+  };
+
+  const getCurrentDate = () => {
+    const now = new Date();
+    return `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+  };
 
   const handleMenuOpen = (event, ticket) => {
     setAnchorEl(event.currentTarget);
@@ -136,57 +173,75 @@ const TicketManagementPage = () => {
     handleMenuClose();
   };
 
-  const handleQuickAddTicket = () => {
-    // Quick add with default values
-    const ticket = {
-      id: `TID${String(tickets.length + 1).padStart(3, '0')}`,
-      title: 'New Ticket',
-      description: 'Please update with details',
-      status: 'Open',
-      priority: 'Medium',
-      assignee: 'Unassigned',
-      email: 'support@example.com',
-      createdDate: new Date().toLocaleDateString('en-US', { 
-        month: 'numeric', 
-        day: 'numeric', 
-        year: 'numeric' 
-      }),
-      avatar: 'U',
+//   const handleEditTicket = () => {
+//     if (!selectedTicket) return;
+//     setTickets(prev => prev.map(ticket =>
+//       ticket.id === selectedTicket.id ? { ...ticket, ...editData } : ticket
+//     ));
+//     setEditTicketOpen(false);
+//     resetEditData();
+//     showSnackbar('Ticket updated successfully', 'success');
+//   };
+
+  const handleAddTicket = () => {
+    if (!addData.title || !addData.assignee || !addData.email) {
+      showSnackbar('Please fill in all required fields', 'error');
+      return;
+    }
+
+    const newTicket = {
+      id: generateTicketId(),
+      title: addData.title,
+      description: addData.description,
+      status: addData.status,
+      priority: addData.priority,
+      assignee: addData.assignee,
+      email: addData.email,
+      createdDate: getCurrentDate(),
+      avatar: getAvatarInitial(addData.assignee),
       bookmarked: false
     };
 
-    setTickets(prev => [...prev, ticket]);
-    showSnackbar('New ticket created - please edit to add details', 'success');
+    setTickets(prev => [newTicket, ...prev]);
+    setAddTicketOpen(false);
+    resetAddData();
+    showSnackbar('Ticket created successfully', 'success');
   };
 
-  const handleEditTicket = () => {
-    if (!selectedTicket) return;
+//   const openEditDialog = (ticket) => {
+//     setSelectedTicket(ticket);
+//     setEditData({
+//       title: ticket.title,
+//       description: ticket.description,
+//       priority: ticket.priority,
+//       status: ticket.status,
+//       assignee: ticket.assignee,
+//       email: ticket.email
+//     });
+//     setEditTicketOpen(true);
+//     handleMenuClose();
+//   };
 
-    setTickets(prev => prev.map(ticket =>
-      ticket.id === selectedTicket.id ? { ...ticket, ...newTicket } : ticket
-    ));
-    setEditTicketOpen(false);
-    setNewTicket({
+//   const resetEditData = () => {
+//     setEditData({
+//       title: '',
+//       description: '',
+//       priority: 'Medium',
+//       status: 'Open',
+//       assignee: '',
+//       email: ''
+//     });
+//   };
+
+  const resetAddData = () => {
+    setAddData({
       title: '',
       description: '',
       priority: 'Medium',
+      status: 'Open',
       assignee: '',
       email: ''
     });
-    showSnackbar('Ticket updated successfully', 'success');
-  };
-
-  const openEditDialog = (ticket) => {
-    setSelectedTicket(ticket);
-    setNewTicket({
-      title: ticket.title,
-      description: ticket.description,
-      priority: ticket.priority,
-      assignee: ticket.assignee,
-      email: ticket.email
-    });
-    setEditTicketOpen(true);
-    handleMenuClose();
   };
 
   const showSnackbar = (message, severity) => {
@@ -206,6 +261,10 @@ const TicketManagementPage = () => {
     showSnackbar('Ticket flagged for review', 'warning');
     handleMenuClose();
   };
+ const [open, setOpen] = useState(false);
+
+  const handleOpenModal = () => setOpen(true);
+  const handleCloseModal = () => setOpen(false); 
 
   return (
     <Box sx={{ p: 3, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
@@ -214,19 +273,22 @@ const TicketManagementPage = () => {
         <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#333' }}>
           All Tickets
         </Typography>
-        <Button
-          variant="contained"
+        <Button 
+          variant="contained" 
+          color="primary" 
           startIcon={<AddIcon />}
-          onClick={handleQuickAddTicket}
-          sx={{
-            bgcolor: '#1976d2',
-            '&:hover': { bgcolor: '#1565c0' },
+          onClick={handleOpenModal}
+      
+          sx={{ 
+            borderRadius: 2,
             textTransform: 'none',
-            px: 3
+            px: 3,
+            py: 1
           }}
         >
-          QUICK ADD
+         ADD TICKET
         </Button>
+        <CreateTicketForm open={open} onClose={handleCloseModal} />
       </Box>
 
       {/* Search Bar */}
@@ -254,103 +316,101 @@ const TicketManagementPage = () => {
 
       {/* Tickets List */}
       <Stack spacing={2}>
-        {filteredTickets.map((ticket) => (
-          <Card key={ticket.id} sx={{ bgcolor: 'white', boxShadow: 1 }}>
-            <CardContent sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                {/* Avatar */}
-                <Avatar
-                  sx={{
-                    bgcolor: ticket.avatar === 'J' ? '#ff9800' : ticket.avatar === 'U' ? '#9c27b0' : '#2196f3',
-                    width: 40,
-                    height: 40,
-                    fontSize: '1.2rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  {ticket.avatar}
-                </Avatar>
-
-                {/* Content */}
-                <Box sx={{ flex: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
-                      {ticket.title}
-                    </Typography>
-                    <Chip
-                      label={ticket.id}
-                      size="small"
-                      sx={{
-                        bgcolor: '#e3f2fd',
-                        color: '#1976d2',
-                        fontSize: '0.75rem'
-                      }}
-                    />
-                    <Chip
-                      label={ticket.priority}
-                      size="small"
-                      color={priorityColors[ticket.priority]}
-                      sx={{ fontSize: '0.75rem' }}
-                    />
-                  </Box>
-
-                  <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
-                    {ticket.assignee} • {ticket.email} • {ticket.createdDate}
-                  </Typography>
-
-                  {ticket.description && (
-                    <Typography variant="body2" sx={{ color: '#888', mb: 1 }}>
-                      {ticket.description}
-                    </Typography>
-                  )}
-                </Box>
-
-                {/* Status and Actions */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Chip
-                    label={ticket.status}
-                    color={statusColors[ticket.status]}
-                    size="small"
-                    sx={{ fontSize: '0.75rem' }}
-                  />
-
-                  {/* Action Buttons */}
-                  <IconButton
-                    size="small"
-                    onClick={() => handleReply(ticket)}
-                    sx={{ color: '#666' }}
-                  >
-                    <ReplyIcon />
-                  </IconButton>
-
-                  <IconButton
-                    size="small"
-                    onClick={() => handleBookmark(ticket.id)}
-                    sx={{ color: ticket.bookmarked ? '#ff9800' : '#666' }}
-                  >
-                    {ticket.bookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-                  </IconButton>
-
-                  <IconButton
-                    size="small"
-                    onClick={() => openEditDialog(ticket)}
-                    sx={{ color: '#666' }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-
-                  <IconButton
-                    size="small"
-                    onClick={(e) => handleMenuOpen(e, ticket)}
-                    sx={{ color: '#666' }}
-                  >
-                    <MoreVertIcon />
-                  </IconButton>
-                </Box>
-              </Box>
+        {filteredTickets.length === 0 ? (
+          <Card sx={{ bgcolor: 'white', boxShadow: 1 }}>
+            <CardContent sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="h6" color="text.secondary">
+                No tickets found
+              </Typography>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          filteredTickets.map((ticket) => (
+            <Card key={ticket.id} sx={{ bgcolor: 'white', boxShadow: 1 }}>
+              <CardContent sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: ticket.avatar === 'J' ? '#ff9800' : ticket.avatar === 'U' ? '#9c27b0' : '#2196f3',
+                      width: 40,
+                      height: 40,
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {ticket.avatar}
+                  </Avatar>
+
+                  <Box sx={{ flex: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
+                        {ticket.title}
+                      </Typography>
+                      <Chip
+                        label={ticket.id}
+                        size="small"
+                        sx={{
+                          bgcolor: '#e3f2fd',
+                          color: '#1976d2',
+                          fontSize: '0.75rem'
+                        }}
+                      />
+                      <Chip
+                        label={ticket.priority}
+                        size="small"
+                        color={priorityColors[ticket.priority]}
+                        sx={{ fontSize: '0.75rem' }}
+                      />
+                    </Box>
+
+                    <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
+                      {ticket.assignee} • {ticket.email} • {ticket.createdDate}
+                    </Typography>
+
+                    {ticket.description && (
+                      <Typography variant="body2" sx={{ color: '#888', mb: 1 }}>
+                        {ticket.description}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      label={ticket.status}
+                      color={statusColors[ticket.status]}
+                      size="small"
+                      sx={{ fontSize: '0.75rem' }}
+                    />
+
+                    <IconButton size="small" onClick={() => handleReply(ticket)} sx={{ color: '#666' }}>
+                      <ReplyIcon />
+                    </IconButton>
+
+                    <IconButton
+                      size="small"
+                      onClick={() => handleBookmark(ticket.id)}
+                      sx={{ color: ticket.bookmarked ? '#ff9800' : '#666' }}
+                    >
+                      {ticket.bookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+                    </IconButton>
+
+                    <IconButton size="small" onClick={() => openEditDialog(ticket)} sx={{ color: '#666' }}>
+                      <EditIcon />
+                    </IconButton>
+
+                    <IconButton
+                      size="small"
+                      onClick={(e) => handleMenuOpen(e, ticket)}
+                      sx={{ color: '#666' }}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </Stack>
 
       {/* Menu */}
@@ -361,18 +421,10 @@ const TicketManagementPage = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Open')}>
-          Mark as Open
-        </MenuItem>
-        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'In Progress')}>
-          Mark as In Progress
-        </MenuItem>
-        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Resolved')}>
-          Mark as Resolved
-        </MenuItem>
-        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Closed')}>
-          Mark as Closed
-        </MenuItem>
+        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Open')}>Mark as Open</MenuItem>
+        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'In Progress')}>Mark as In Progress</MenuItem>
+        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Resolved')}>Mark as Resolved</MenuItem>
+        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Closed')}>Mark as Closed</MenuItem>
         <Divider />
         <MenuItem onClick={() => handleArchive(selectedTicket?.id)}>
           <ArchiveIcon sx={{ mr: 1 }} /> Archive
@@ -385,67 +437,7 @@ const TicketManagementPage = () => {
         </MenuItem>
       </Menu>
 
-      {/* Edit Ticket Dialog */}
-      <Dialog open={editTicketOpen} onClose={() => setEditTicketOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          Edit Ticket
-          <IconButton onClick={() => setEditTicketOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Title"
-              fullWidth
-              required
-              value={newTicket.title}
-              onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
-            />
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={3}
-              value={newTicket.description}
-              onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-            />
-            <FormControl fullWidth>
-              <InputLabel>Priority</InputLabel>
-              <Select
-                value={newTicket.priority}
-                onChange={(e) => setNewTicket({ ...newTicket, priority: e.target.value })}
-                label="Priority"
-              >
-                <MenuItem value="High">High</MenuItem>
-                <MenuItem value="Medium">Medium</MenuItem>
-                <MenuItem value="Low">Low</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              label="Assignee"
-              fullWidth
-              required
-              value={newTicket.assignee}
-              onChange={(e) => setNewTicket({ ...newTicket, assignee: e.target.value })}
-            />
-            <TextField
-              label="Email"
-              fullWidth
-              required
-              type="email"
-              value={newTicket.email}
-              onChange={(e) => setNewTicket({ ...newTicket, email: e.target.value })}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setEditTicketOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditTicket}>
-            Update Ticket
-          </Button>
-        </DialogActions>
-      </Dialog>
+      
 
       {/* Snackbar */}
       <Snackbar
