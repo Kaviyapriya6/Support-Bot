@@ -254,7 +254,7 @@ const BizBooksDashboard = () => {
           </div>
           <div className="nav-item">
             <TicketIcon />
-            <Link href="/ticket">TICKETS</Link>
+            <Link href="/tickets">TICKETS</Link>
           </div>
         </nav>
       </div>

@@ -1,41 +1,15 @@
-// app/api/tickets/route.js
-import clientPromise from '../../lib/mongodb';
+import { dbConnect } from '../../lib/mongodb';
+import Ticket from '../../models/Ticket';
 
-export async function POST(request) {
-  try {
-    const body = await request.json();
-    const {
-      contactName,
-      email,
-      phoneNumber,
-      issueType,
-      priority,
-      subject,
-      description
-    } = body;
+export async function GET() {
+  await dbConnect();
+  const tickets = await Ticket.find().sort({ createdAt: -1 });
+  return Response.json(tickets);
+}
 
-    if (!contactName || !email || !subject || !description) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    const client = await clientPromise;
-    const db = client.db(); // Uses default DB from URI
-    const collection = db.collection('tickets');
-
-    const result = await collection.insertOne({
-      contactName,
-      email,
-      phoneNumber,
-      issueType,
-      priority,
-      subject,
-      description,
-      createdAt: new Date()
-    });
-
-    return Response.json({ message: 'Ticket saved', id: result.insertedId });
-  } catch (error) {
-    console.error('Error saving ticket:', error);
-    return Response.json({ error: 'Server error' }, { status: 500 });
-  }
+export async function POST(req) {
+  await dbConnect();
+  const data = await req.json();
+  const ticket = await Ticket.create(data);
+  return Response.json(ticket);
 }
