@@ -1,5 +1,6 @@
-'use client'
+'use client';
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link'
 import {
   Box,
   Typography,
@@ -27,7 +28,6 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  Add as AddIcon,
   Reply as ReplyIcon,
   Bookmark as BookmarkIcon,
   BookmarkBorder as BookmarkBorderIcon,
@@ -74,7 +74,7 @@ const TicketManagementPage = () => {
   const [editTicketOpen, setEditTicketOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  const [newTicket, setNewTicket] = useState({
+  const [editData, setEditData] = useState({
     title: '',
     description: '',
     priority: 'Medium',
@@ -136,37 +136,13 @@ const TicketManagementPage = () => {
     handleMenuClose();
   };
 
-  const handleQuickAddTicket = () => {
-    // Quick add with default values
-    const ticket = {
-      id: `TID${String(tickets.length + 1).padStart(3, '0')}`,
-      title: 'New Ticket',
-      description: 'Please update with details',
-      status: 'Open',
-      priority: 'Medium',
-      assignee: 'Unassigned',
-      email: 'support@example.com',
-      createdDate: new Date().toLocaleDateString('en-US', { 
-        month: 'numeric', 
-        day: 'numeric', 
-        year: 'numeric' 
-      }),
-      avatar: 'U',
-      bookmarked: false
-    };
-
-    setTickets(prev => [...prev, ticket]);
-    showSnackbar('New ticket created - please edit to add details', 'success');
-  };
-
   const handleEditTicket = () => {
     if (!selectedTicket) return;
-
     setTickets(prev => prev.map(ticket =>
-      ticket.id === selectedTicket.id ? { ...ticket, ...newTicket } : ticket
+      ticket.id === selectedTicket.id ? { ...ticket, ...editData } : ticket
     ));
     setEditTicketOpen(false);
-    setNewTicket({
+    setEditData({
       title: '',
       description: '',
       priority: 'Medium',
@@ -178,7 +154,7 @@ const TicketManagementPage = () => {
 
   const openEditDialog = (ticket) => {
     setSelectedTicket(ticket);
-    setNewTicket({
+    setEditData({
       title: ticket.title,
       description: ticket.description,
       priority: ticket.priority,
@@ -214,18 +190,8 @@ const TicketManagementPage = () => {
         <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#333' }}>
           All Tickets
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleQuickAddTicket}
-          sx={{
-            bgcolor: '#1976d2',
-            '&:hover': { bgcolor: '#1565c0' },
-            textTransform: 'none',
-            px: 3
-          }}
-        >
-          QUICK ADD
+        <Button variant="contained" color="primary" onClick={() => {}}>
+          <Link href="/creationform">ADD TICKET</Link>
         </Button>
       </Box>
 
@@ -258,7 +224,6 @@ const TicketManagementPage = () => {
           <Card key={ticket.id} sx={{ bgcolor: 'white', boxShadow: 1 }}>
             <CardContent sx={{ p: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                {/* Avatar */}
                 <Avatar
                   sx={{
                     bgcolor: ticket.avatar === 'J' ? '#ff9800' : ticket.avatar === 'U' ? '#9c27b0' : '#2196f3',
@@ -271,7 +236,6 @@ const TicketManagementPage = () => {
                   {ticket.avatar}
                 </Avatar>
 
-                {/* Content */}
                 <Box sx={{ flex: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
@@ -305,7 +269,6 @@ const TicketManagementPage = () => {
                   )}
                 </Box>
 
-                {/* Status and Actions */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Chip
                     label={ticket.status}
@@ -314,12 +277,7 @@ const TicketManagementPage = () => {
                     sx={{ fontSize: '0.75rem' }}
                   />
 
-                  {/* Action Buttons */}
-                  <IconButton
-                    size="small"
-                    onClick={() => handleReply(ticket)}
-                    sx={{ color: '#666' }}
-                  >
+                  <IconButton size="small" onClick={() => handleReply(ticket)} sx={{ color: '#666' }}>
                     <ReplyIcon />
                   </IconButton>
 
@@ -331,11 +289,7 @@ const TicketManagementPage = () => {
                     {ticket.bookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
                   </IconButton>
 
-                  <IconButton
-                    size="small"
-                    onClick={() => openEditDialog(ticket)}
-                    sx={{ color: '#666' }}
-                  >
+                  <IconButton size="small" onClick={() => openEditDialog(ticket)} sx={{ color: '#666' }}>
                     <EditIcon />
                   </IconButton>
 
@@ -361,18 +315,10 @@ const TicketManagementPage = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Open')}>
-          Mark as Open
-        </MenuItem>
-        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'In Progress')}>
-          Mark as In Progress
-        </MenuItem>
-        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Resolved')}>
-          Mark as Resolved
-        </MenuItem>
-        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Closed')}>
-          Mark as Closed
-        </MenuItem>
+        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Open')}>Mark as Open</MenuItem>
+        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'In Progress')}>Mark as In Progress</MenuItem>
+        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Resolved')}>Mark as Resolved</MenuItem>
+        <MenuItem onClick={() => handleStatusChange(selectedTicket?.id, 'Closed')}>Mark as Closed</MenuItem>
         <Divider />
         <MenuItem onClick={() => handleArchive(selectedTicket?.id)}>
           <ArchiveIcon sx={{ mr: 1 }} /> Archive
@@ -399,22 +345,22 @@ const TicketManagementPage = () => {
               label="Title"
               fullWidth
               required
-              value={newTicket.title}
-              onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+              value={editData.title}
+              onChange={(e) => setEditData({ ...editData, title: e.target.value })}
             />
             <TextField
               label="Description"
               fullWidth
               multiline
               rows={3}
-              value={newTicket.description}
-              onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+              value={editData.description}
+              onChange={(e) => setEditData({ ...editData, description: e.target.value })}
             />
             <FormControl fullWidth>
               <InputLabel>Priority</InputLabel>
               <Select
-                value={newTicket.priority}
-                onChange={(e) => setNewTicket({ ...newTicket, priority: e.target.value })}
+                value={editData.priority}
+                onChange={(e) => setEditData({ ...editData, priority: e.target.value })}
                 label="Priority"
               >
                 <MenuItem value="High">High</MenuItem>
@@ -426,16 +372,16 @@ const TicketManagementPage = () => {
               label="Assignee"
               fullWidth
               required
-              value={newTicket.assignee}
-              onChange={(e) => setNewTicket({ ...newTicket, assignee: e.target.value })}
+              value={editData.assignee}
+              onChange={(e) => setEditData({ ...editData, assignee: e.target.value })}
             />
             <TextField
               label="Email"
               fullWidth
               required
               type="email"
-              value={newTicket.email}
-              onChange={(e) => setNewTicket({ ...newTicket, email: e.target.value })}
+              value={editData.email}
+              onChange={(e) => setEditData({ ...editData, email: e.target.value })}
             />
           </Stack>
         </DialogContent>
