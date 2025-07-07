@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+
+
 import {
   Box,
   Typography,
@@ -76,8 +78,8 @@ const TicketManagementPage = () => {
   const [filteredTickets, setFilteredTickets] = useState(tickets);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [editTicketOpen, setEditTicketOpen] = useState(false);
-  const [addTicketOpen, setAddTicketOpen] = useState(false);
+//   const [editTicketOpen, setEditTicketOpen] = useState(false);
+//   const [addTicketOpen, setAddTicketOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const [editData, setEditData] = useState({
@@ -169,15 +171,15 @@ const TicketManagementPage = () => {
     handleMenuClose();
   };
 
-  const handleEditTicket = () => {
-    if (!selectedTicket) return;
-    setTickets(prev => prev.map(ticket =>
-      ticket.id === selectedTicket.id ? { ...ticket, ...editData } : ticket
-    ));
-    setEditTicketOpen(false);
-    resetEditData();
-    showSnackbar('Ticket updated successfully', 'success');
-  };
+//   const handleEditTicket = () => {
+//     if (!selectedTicket) return;
+//     setTickets(prev => prev.map(ticket =>
+//       ticket.id === selectedTicket.id ? { ...ticket, ...editData } : ticket
+//     ));
+//     setEditTicketOpen(false);
+//     resetEditData();
+//     showSnackbar('Ticket updated successfully', 'success');
+//   };
 
   const handleAddTicket = () => {
     if (!addData.title || !addData.assignee || !addData.email) {
@@ -204,30 +206,30 @@ const TicketManagementPage = () => {
     showSnackbar('Ticket created successfully', 'success');
   };
 
-  const openEditDialog = (ticket) => {
-    setSelectedTicket(ticket);
-    setEditData({
-      title: ticket.title,
-      description: ticket.description,
-      priority: ticket.priority,
-      status: ticket.status,
-      assignee: ticket.assignee,
-      email: ticket.email
-    });
-    setEditTicketOpen(true);
-    handleMenuClose();
-  };
+//   const openEditDialog = (ticket) => {
+//     setSelectedTicket(ticket);
+//     setEditData({
+//       title: ticket.title,
+//       description: ticket.description,
+//       priority: ticket.priority,
+//       status: ticket.status,
+//       assignee: ticket.assignee,
+//       email: ticket.email
+//     });
+//     setEditTicketOpen(true);
+//     handleMenuClose();
+//   };
 
-  const resetEditData = () => {
-    setEditData({
-      title: '',
-      description: '',
-      priority: 'Medium',
-      status: 'Open',
-      assignee: '',
-      email: ''
-    });
-  };
+//   const resetEditData = () => {
+//     setEditData({
+//       title: '',
+//       description: '',
+//       priority: 'Medium',
+//       status: 'Open',
+//       assignee: '',
+//       email: ''
+//     });
+//   };
 
   const resetAddData = () => {
     setAddData({
@@ -269,7 +271,7 @@ const TicketManagementPage = () => {
           variant="contained" 
           color="primary" 
           startIcon={<AddIcon />}
-          onClick={() => setAddTicketOpen(true)}
+        //   onClick={() => setAddTicketOpen(true)}
           sx={{ 
             borderRadius: 2,
             textTransform: 'none',
@@ -277,7 +279,7 @@ const TicketManagementPage = () => {
             py: 1
           }}
         >
-          Add Ticket
+         ADD TICKET
         </Button>
       </Box>
 
@@ -428,7 +430,7 @@ const TicketManagementPage = () => {
       </Menu>
 
       {/* Add Ticket Dialog */}
-      <Dialog 
+      {/* <Dialog 
         open={addTicketOpen} 
         onClose={() => setAddTicketOpen(false)} 
         maxWidth="md" 
@@ -535,10 +537,10 @@ const TicketManagementPage = () => {
             Create Ticket
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
 
       {/* Edit Ticket Dialog */}
-      <Dialog 
+      {/* <Dialog 
         open={editTicketOpen} 
         onClose={() => setEditTicketOpen(false)} 
         maxWidth="md" 
@@ -641,7 +643,7 @@ const TicketManagementPage = () => {
             Update Ticket
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
 
       {/* Snackbar */}
       <Snackbar
