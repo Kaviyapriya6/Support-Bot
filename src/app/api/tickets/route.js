@@ -19,7 +19,7 @@ export async function POST(request) {
     }
 
     const client = await clientPromise;
-    const db = client.db(); // default DB from URI
+    const db = client.db(); // Uses default DB from URI
     const collection = db.collection('tickets');
 
     const result = await collection.insertOne({
@@ -35,7 +35,7 @@ export async function POST(request) {
 
     return Response.json({ message: 'Ticket saved', id: result.insertedId });
   } catch (error) {
-    console.error('MongoDB Error:', error);
+    console.error('Error saving ticket:', error);
     return Response.json({ error: 'Server error' }, { status: 500 });
   }
 }
