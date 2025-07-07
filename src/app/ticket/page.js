@@ -41,10 +41,12 @@ import {
   Flag as FlagIcon,
   Add as AddIcon
 } from '@mui/icons-material';
+import  CreateTicketForm from '../../components/Creationform';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
+
 
 const TicketManagementPage = () => {
   const [tickets, setTickets] = useState([
@@ -259,6 +261,10 @@ const TicketManagementPage = () => {
     showSnackbar('Ticket flagged for review', 'warning');
     handleMenuClose();
   };
+ const [open, setOpen] = useState(false);
+
+  const handleOpenModal = () => setOpen(true);
+  const handleCloseModal = () => setOpen(false); 
 
   return (
     <Box sx={{ p: 3, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
@@ -271,7 +277,8 @@ const TicketManagementPage = () => {
           variant="contained" 
           color="primary" 
           startIcon={<AddIcon />}
-        //   onClick={() => setAddTicketOpen(true)}
+          onClick={handleOpenModal}
+      
           sx={{ 
             borderRadius: 2,
             textTransform: 'none',
@@ -281,6 +288,7 @@ const TicketManagementPage = () => {
         >
          ADD TICKET
         </Button>
+        <CreateTicketForm open={open} onClose={handleCloseModal} />
       </Box>
 
       {/* Search Bar */}
@@ -429,221 +437,7 @@ const TicketManagementPage = () => {
         </MenuItem>
       </Menu>
 
-      {/* Add Ticket Dialog */}
-      {/* <Dialog 
-        open={addTicketOpen} 
-        onClose={() => setAddTicketOpen(false)} 
-        maxWidth="md" 
-        fullWidth
-        TransitionComponent={Transition}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minHeight: '60vh'
-          }
-        }}
-      >
-        <DialogTitle sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          bgcolor: '#f8f9fa',
-          borderBottom: '1px solid #e0e0e0'
-        }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Create New Ticket
-          </Typography>
-          <IconButton onClick={() => setAddTicketOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Stack spacing={3} sx={{ mt: 1 }}>
-            <TextField
-              label="Title"
-              fullWidth
-              required
-              value={addData.title}
-              onChange={(e) => setAddData({ ...addData, title: e.target.value })}
-              placeholder="Enter ticket title"
-            />
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={4}
-              value={addData.description}
-              onChange={(e) => setAddData({ ...addData, description: e.target.value })}
-              placeholder="Describe the issue or request"
-            />
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={addData.priority}
-                  onChange={(e) => setAddData({ ...addData, priority: e.target.value })}
-                  label="Priority"
-                >
-                  <MenuItem value="High">High</MenuItem>
-                  <MenuItem value="Medium">Medium</MenuItem>
-                  <MenuItem value="Low">Low</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={addData.status}
-                  onChange={(e) => setAddData({ ...addData, status: e.target.value })}
-                  label="Status"
-                >
-                  <MenuItem value="Open">Open</MenuItem>
-                  <MenuItem value="In Progress">In Progress</MenuItem>
-                  <MenuItem value="Resolved">Resolved</MenuItem>
-                  <MenuItem value="Closed">Closed</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <TextField
-              label="Assignee"
-              fullWidth
-              required
-              value={addData.assignee}
-              onChange={(e) => setAddData({ ...addData, assignee: e.target.value })}
-              placeholder="Enter assignee name"
-            />
-            <TextField
-              label="Email"
-              fullWidth
-              required
-              type="email"
-              value={addData.email}
-              onChange={(e) => setAddData({ ...addData, email: e.target.value })}
-              placeholder="Enter assignee email"
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa', borderTop: '1px solid #e0e0e0' }}>
-          <Button 
-            onClick={() => setAddTicketOpen(false)}
-            sx={{ px: 3 }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleAddTicket}
-            sx={{ px: 3 }}
-          >
-            Create Ticket
-          </Button>
-        </DialogActions>
-      </Dialog> */}
-
-      {/* Edit Ticket Dialog */}
-      {/* <Dialog 
-        open={editTicketOpen} 
-        onClose={() => setEditTicketOpen(false)} 
-        maxWidth="md" 
-        fullWidth
-        TransitionComponent={Transition}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minHeight: '60vh'
-          }
-        }}
-      >
-        <DialogTitle sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          bgcolor: '#f8f9fa',
-          borderBottom: '1px solid #e0e0e0'
-        }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Edit Ticket - {selectedTicket?.id}
-          </Typography>
-          <IconButton onClick={() => setEditTicketOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Stack spacing={3} sx={{ mt: 1 }}>
-            <TextField
-              label="Title"
-              fullWidth
-              required
-              value={editData.title}
-              onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-            />
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={4}
-              value={editData.description}
-              onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-            />
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={editData.priority}
-                  onChange={(e) => setEditData({ ...editData, priority: e.target.value })}
-                  label="Priority"
-                >
-                  <MenuItem value="High">High</MenuItem>
-                  <MenuItem value="Medium">Medium</MenuItem>
-                  <MenuItem value="Low">Low</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={editData.status}
-                  onChange={(e) => setEditData({ ...editData, status: e.target.value })}
-                  label="Status"
-                >
-                  <MenuItem value="Open">Open</MenuItem>
-                  <MenuItem value="In Progress">In Progress</MenuItem>
-                  <MenuItem value="Resolved">Resolved</MenuItem>
-                  <MenuItem value="Closed">Closed</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <TextField
-              label="Assignee"
-              fullWidth
-              required
-              value={editData.assignee}
-              onChange={(e) => setEditData({ ...editData, assignee: e.target.value })}
-            />
-            <TextField
-              label="Email"
-              fullWidth
-              required
-              type="email"
-              value={editData.email}
-              onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 3, bgcolor: '#f8f9fa', borderTop: '1px solid #e0e0e0' }}>
-          <Button 
-            onClick={() => setEditTicketOpen(false)}
-            sx={{ px: 3 }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleEditTicket}
-            sx={{ px: 3 }}
-          >
-            Update Ticket
-          </Button>
-        </DialogActions>
-      </Dialog> */}
+      
 
       {/* Snackbar */}
       <Snackbar
