@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 
-
 import {
   Box,
   Typography,
@@ -41,12 +40,11 @@ import {
   Flag as FlagIcon,
   Add as AddIcon
 } from '@mui/icons-material';
-import  CreateTicketForm from '../../components/Creationform';
+import CreateTicketForm from '../../components/Creationform';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
-
 
 const TicketManagementPage = () => {
   const [tickets, setTickets] = useState([
@@ -80,9 +78,17 @@ const TicketManagementPage = () => {
   const [filteredTickets, setFilteredTickets] = useState(tickets);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
-//   const [editTicketOpen, setEditTicketOpen] = useState(false);
-//   const [addTicketOpen, setAddTicketOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  
+  // Modal state for Create Ticket Form
+  const [createTicketModalOpen, setCreateTicketModalOpen] = useState(false);
+  
+  // Modal state for Edit Ticket Form
+  const [editTicketModalOpen, setEditTicketModalOpen] = useState(false);
+  
+  // Delete confirmation dialog state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState(null);
 
   const [editData, setEditData] = useState({
     title: '',
@@ -173,16 +179,6 @@ const TicketManagementPage = () => {
     handleMenuClose();
   };
 
-//   const handleEditTicket = () => {
-//     if (!selectedTicket) return;
-//     setTickets(prev => prev.map(ticket =>
-//       ticket.id === selectedTicket.id ? { ...ticket, ...editData } : ticket
-//     ));
-//     setEditTicketOpen(false);
-//     resetEditData();
-//     showSnackbar('Ticket updated successfully', 'success');
-//   };
-
   const handleAddTicket = () => {
     if (!addData.title || !addData.assignee || !addData.email) {
       showSnackbar('Please fill in all required fields', 'error');
@@ -203,35 +199,10 @@ const TicketManagementPage = () => {
     };
 
     setTickets(prev => [newTicket, ...prev]);
-    setAddTicketOpen(false);
+    setCreateTicketModalOpen(false);
     resetAddData();
     showSnackbar('Ticket created successfully', 'success');
   };
-
-//   const openEditDialog = (ticket) => {
-//     setSelectedTicket(ticket);
-//     setEditData({
-//       title: ticket.title,
-//       description: ticket.description,
-//       priority: ticket.priority,
-//       status: ticket.status,
-//       assignee: ticket.assignee,
-//       email: ticket.email
-//     });
-//     setEditTicketOpen(true);
-//     handleMenuClose();
-//   };
-
-//   const resetEditData = () => {
-//     setEditData({
-//       title: '',
-//       description: '',
-//       priority: 'Medium',
-//       status: 'Open',
-//       assignee: '',
-//       email: ''
-//     });
-//   };
 
   const resetAddData = () => {
     setAddData({
@@ -261,10 +232,121 @@ const TicketManagementPage = () => {
     showSnackbar('Ticket flagged for review', 'warning');
     handleMenuClose();
   };
- const [open, setOpen] = useState(false);
 
-  const handleOpenModal = () => setOpen(true);
-  const handleCloseModal = () => setOpen(false); 
+  // Modal handlers
+  const handleOpenCreateTicketModal = () => {
+    setCreateTicketModalOpen(true);
+  };
+
+  const handleCloseCreateTicketModal = () => {
+    setCreateTicketModalOpen(false);
+    resetAddData(); // Reset form data when closing
+  };
+
+  // Edit Modal handlers
+  const handleOpenEditTicketModal = (ticket) => {
+    setSelectedTicket(ticket);
+    setEditData({
+      title: ticket.title,
+      description: ticket.description,
+      priority: ticket.priority,
+      status: ticket.status,
+      assignee: ticket.assignee,
+      email: ticket.email
+    });
+    setEditTicketModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleCloseEditTicketModal = () => {
+    setEditTicketModalOpen(false);
+    setSelectedTicket(null);
+    resetEditData();
+  };
+
+  const resetEditData = () => {
+    setEditData({
+      title: '',
+      description: '',
+      priority: 'Medium',
+      status: 'Open',
+      assignee: '',
+      email: ''
+    });
+  };
+
+  // Delete confirmation handlers
+  const handleOpenDeleteConfirm = (ticket) => {
+    setTicketToDelete(ticket);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleCloseDeleteConfirm = () => {
+    setDeleteConfirmOpen(false);
+    setTicketToDelete(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (ticketToDelete) {
+      setTickets(prev => prev.filter(ticket => ticket.id !== ticketToDelete.id));
+      showSnackbar(`Ticket "${ticketToDelete.title}" deleted successfully`, 'success');
+      handleCloseDeleteConfirm();
+    }
+  };
+
+  // Function to handle ticket creation from the modal
+  const handleCreateTicketSubmit = (ticketData) => {
+    const newTicket = {
+      id: generateTicketId(),
+      ...ticketData,
+      createdDate: getCurrentDate(),
+      avatar: getAvatarInitial(ticketData.assignee),
+      bookmarked: false
+    };
+
+    setTickets(prev => [newTicket, ...prev]);
+    setCreateTicketModalOpen(false);
+    showSnackbar('Ticket created successfully', 'success');
+  };
+
+  // Function to handle ticket editing from the modal
+  const handleEditTicketSubmit = (ticketData) => {
+    if (!selectedTicket) return;
+    
+    const updatedTicket = {
+      ...selectedTicket,
+      ...ticketData,
+      avatar: getAvatarInitial(ticketData.assignee)
+    };
+
+    setTickets(prev => prev.map(ticket =>
+      ticket.id === selectedTicket.id ? updatedTicket : ticket
+    ));
+    setEditTicketModalOpen(false);
+    showSnackbar('Ticket updated successfully', 'success');
+  };
+
+  const openEditDialog = (ticket) => {
+    // Validation: Check if ticket exists and has required fields
+    if (!ticket) {
+      showSnackbar('Error: No ticket selected', 'error');
+      return;
+    }
+    
+    if (!ticket.id) {
+      showSnackbar('Error: Invalid ticket - missing ID', 'error');
+      return;
+    }
+    
+    // Additional validation for required fields
+    if (!ticket.title || !ticket.assignee) {
+      showSnackbar('Error: Ticket missing required information', 'error');
+      return;
+    }
+    
+    // If all validations pass, open the edit modal
+    handleOpenEditTicketModal(ticket);
+  };
 
   return (
     <Box sx={{ p: 3, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
@@ -277,8 +359,7 @@ const TicketManagementPage = () => {
           variant="contained" 
           color="primary" 
           startIcon={<AddIcon />}
-          onClick={handleOpenModal}
-      
+          onClick={handleOpenCreateTicketModal}
           sx={{ 
             borderRadius: 2,
             textTransform: 'none',
@@ -286,9 +367,8 @@ const TicketManagementPage = () => {
             py: 1
           }}
         >
-         ADD TICKET
+          ADD TICKET
         </Button>
-        <CreateTicketForm open={open} onClose={handleCloseModal} />
       </Box>
 
       {/* Search Bar */}
@@ -398,6 +478,14 @@ const TicketManagementPage = () => {
                       <EditIcon />
                     </IconButton>
 
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleOpenDeleteConfirm(ticket)} 
+                      sx={{ color: '#f44336' }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+
                     <IconButton
                       size="small"
                       onClick={(e) => handleMenuOpen(e, ticket)}
@@ -412,6 +500,158 @@ const TicketManagementPage = () => {
           ))
         )}
       </Stack>
+
+      {/* Create Ticket Modal */}
+      <Dialog
+        open={createTicketModalOpen}
+        onClose={handleCloseCreateTicketModal}
+        TransitionComponent={Transition}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minHeight: '400px'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 2
+        }}>
+          <Typography variant="h6" component="div">
+            Create New Ticket
+          </Typography>
+          <IconButton 
+            onClick={handleCloseCreateTicketModal}
+            size="small"
+            sx={{ color: '#666' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ px: 3, py: 0 }}>
+          <CreateTicketForm 
+            open={createTicketModalOpen}
+            onClose={handleCloseCreateTicketModal}
+            onSubmit={handleCreateTicketSubmit}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleCloseDeleteConfirm}
+        TransitionComponent={Transition}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          pb: 2,
+          color: '#f44336'
+        }}>
+          <DeleteIcon sx={{ mr: 1 }} />
+          <Typography variant="h6" component="div">
+            Delete Ticket
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ px: 3, py: 2 }}>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Are you sure you want to delete the following ticket?
+          </Typography>
+          <Box sx={{ 
+            p: 2, 
+            bgcolor: '#f5f5f5', 
+            borderRadius: 1,
+            border: '1px solid #e0e0e0'
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+              {ticketToDelete?.title}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
+              <strong>ID:</strong> {ticketToDelete?.id}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
+              <strong>Assignee:</strong> {ticketToDelete?.assignee}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#666' }}>
+              <strong>Status:</strong> {ticketToDelete?.status}
+            </Typography>
+          </Box>
+          <Typography variant="body2" sx={{ mt: 2, color: '#f44336' }}>
+            <strong>Warning:</strong> This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={handleCloseDeleteConfirm}
+            variant="outlined"
+            sx={{ mr: 1 }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+            startIcon={<DeleteIcon />}
+          >
+            Delete Ticket
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Ticket Modal */}
+      <Dialog
+        open={editTicketModalOpen}
+        onClose={handleCloseEditTicketModal}
+        TransitionComponent={Transition}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minHeight: '400px'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 2
+        }}>
+          <Typography variant="h6" component="div">
+            Edit Ticket - {selectedTicket?.id}
+          </Typography>
+          <IconButton 
+            onClick={handleCloseEditTicketModal}
+            size="small"
+            sx={{ color: '#666' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ px: 3, py: 0 }}>
+          <CreateTicketForm 
+            open={editTicketModalOpen}
+            onClose={handleCloseEditTicketModal}
+            onSubmit={handleEditTicketSubmit}
+            initialData={editData}
+            isEditing={true}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Menu */}
       <Menu
@@ -436,8 +676,6 @@ const TicketManagementPage = () => {
           <DeleteIcon sx={{ mr: 1 }} /> Delete
         </MenuItem>
       </Menu>
-
-      
 
       {/* Snackbar */}
       <Snackbar
