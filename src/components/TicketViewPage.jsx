@@ -58,8 +58,46 @@ export default function TicketView({ ticketData }) {
     window.print();
   };
 
-  const handleDownload = () => {
-    console.log('Downloading attachment...');
+  const handleDownload = async () => {
+    try {
+      // If you have a direct file URL
+      if (ticketData.fileUrl) {
+        // Method 1: Direct download using file URL
+        const link = document.createElement('a');
+        link.href = ticketData.fileUrl;
+        link.download = ticketData.fileName || 'attachment';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // Method 2: API call to get file blob
+        const response = await fetch(`/api/tickets/${ticketData._id}/download`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`, // if using auth
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to download file');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = ticketData.fileName || 'attachment';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      // You might want to show a toast notification here
+      alert('Failed to download file. Please try again.');
+    }
   };
 
   const handleClose = () => {
@@ -217,7 +255,7 @@ export default function TicketView({ ticketData }) {
                 <Button
                   variant="outlined"
                   startIcon={<DownloadIcon />}
-                  onClick={() => console.log('Downloading…')}
+                  onClick={handleDownload}
                 >
                   Download
                 </Button>
