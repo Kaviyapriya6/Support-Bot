@@ -14,7 +14,6 @@ import {
   Phone as PhoneIcon,
   Person as PersonIcon,
   Assignment as AssignmentIcon,
-  ArrowBack as ArrowBackIcon,
   CloudDownload as CloudDownloadIcon
 } from '@mui/icons-material';
 import { useState } from 'react';
@@ -22,7 +21,6 @@ import { useRouter } from 'next/navigation';
 
 export default function TicketView({ ticketData }) {
   const router = useRouter();
-  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -52,10 +50,6 @@ export default function TicketView({ ticketData }) {
     router.push(`/tickets/edit/${ticketData._id}`);
   };
 
-  const handleCloseTicket = () => {
-    setShowCloseDialog(true);
-  };
-
   const handleReopen = () => {
     console.log('Reopening ticket...');
   };
@@ -66,6 +60,10 @@ export default function TicketView({ ticketData }) {
 
   const handleDownload = () => {
     console.log('Downloading attachment...');
+  };
+
+  const handleClose = () => {
+    router.push('/tickets');
   };
 
   if (!ticketData) {
@@ -89,13 +87,6 @@ export default function TicketView({ ticketData }) {
         }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Stack direction="row" alignItems="center" spacing={2}>
-              <Button
-                variant="outlined"
-                startIcon={<ArrowBackIcon />}
-                onClick={() => router.back()}
-              >
-                Back
-              </Button>
               <Box sx={{ p: 1.5, bgcolor: 'primary.main', borderRadius: 2, color: 'white' }}>
                 <AssignmentIcon sx={{ fontSize: 28 }} />
               </Box>
@@ -123,15 +114,20 @@ export default function TicketView({ ticketData }) {
               <Button variant="outlined" startIcon={<EditIcon />} onClick={handleEdit}>
                 Edit
               </Button>
-              {ticketData.status !== 'Closed' ? (
-                <Button variant="contained" color="error" startIcon={<CloseIcon />} onClick={handleCloseTicket}>
-                  Close Ticket
-                </Button>
-              ) : (
-                <Button variant="contained" color="success" startIcon={<ReopenIcon />} onClick={handleReopen}>
-                  Reopen
-                </Button>
-              )}
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<CloseIcon />}
+                onClick={handleClose}
+                sx={{
+                  '&:hover': {
+                    bgcolor: 'error.light',
+                    color: 'white'
+                  }
+                }}
+              >
+                Close
+              </Button>
             </Stack>
           </Stack>
         </Box>
@@ -231,27 +227,6 @@ export default function TicketView({ ticketData }) {
             </Paper>
           </Grid>
         </Grid>
-
-        {/* Close Dialog */}
-        <Dialog open={showCloseDialog} onClose={() => setShowCloseDialog(false)}>
-          <DialogTitle>Close Ticket</DialogTitle>
-          <DialogContent>
-            Are you sure you want to close this ticket?
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowCloseDialog(false)}>Cancel</Button>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => {
-                setShowCloseDialog(false);
-                console.log('Closing ticket…');
-              }}
-            >
-              Close Ticket
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Box>
     </Box>
   );
