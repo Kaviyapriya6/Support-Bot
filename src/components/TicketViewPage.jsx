@@ -14,7 +14,6 @@ import {
   Phone as PhoneIcon,
   Person as PersonIcon,
   Assignment as AssignmentIcon,
-  ArrowBack as ArrowBackIcon,
   CloudDownload as CloudDownloadIcon
 } from '@mui/icons-material';
 import { useState } from 'react';
@@ -22,7 +21,6 @@ import { useRouter } from 'next/navigation';
 
 export default function TicketView({ ticketData }) {
   const router = useRouter();
-  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -52,10 +50,6 @@ export default function TicketView({ ticketData }) {
     router.push(`/tickets/edit/${ticketData._id}`);
   };
 
-  const handleCloseTicket = () => {
-    setShowCloseDialog(true);
-  };
-
   const handleReopen = () => {
     console.log('Reopening ticket...');
   };
@@ -66,6 +60,10 @@ export default function TicketView({ ticketData }) {
 
   const handleDownload = () => {
     console.log('Downloading attachment...');
+  };
+
+  const handleClose = () => {
+    router.push('/tickets');
   };
 
   if (!ticketData) {
@@ -89,6 +87,7 @@ export default function TicketView({ ticketData }) {
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', p: 3 }}>
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
 
+<<<<<<< HEAD
         {/* Header Section */}
         <Paper 
           sx={{ 
@@ -121,6 +120,17 @@ export default function TicketView({ ticketData }) {
                 justifyContent: 'center'
               }}>
                 <AssignmentIcon sx={{ fontSize: 32 }} />
+=======
+        {/* Header */}
+        <Box sx={{
+          mb: 4, p: 3, bgcolor: 'white', borderRadius: 2,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0'
+        }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Box sx={{ p: 1.5, bgcolor: 'primary.main', borderRadius: 2, color: 'white' }}>
+                <AssignmentIcon sx={{ fontSize: 28 }} />
+>>>>>>> 90860255d40a3e8eaa9732204ffd97f6e632442c
               </Box>
               
               <Box>
@@ -159,6 +169,23 @@ export default function TicketView({ ticketData }) {
               >
                 Edit
               </Button>
+<<<<<<< HEAD
+=======
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<CloseIcon />}
+                onClick={handleClose}
+                sx={{
+                  '&:hover': {
+                    bgcolor: 'error.light',
+                    color: 'white'
+                  }
+                }}
+              >
+                Close
+              </Button>
+>>>>>>> 90860255d40a3e8eaa9732204ffd97f6e632442c
             </Stack>
           </Stack>
         </Paper>
@@ -324,27 +351,6 @@ export default function TicketView({ ticketData }) {
             </Paper>
           </Grid>
         </Grid>
-
-        {/* Close Dialog */}
-        <Dialog open={showCloseDialog} onClose={() => setShowCloseDialog(false)}>
-          <DialogTitle>Close Ticket</DialogTitle>
-          <DialogContent>
-            Are you sure you want to close this ticket?
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowCloseDialog(false)}>Cancel</Button>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => {
-                setShowCloseDialog(false);
-                console.log('Closing ticket…');
-              }}
-            >
-              Close Ticket
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Box>
     </Box>
   );
