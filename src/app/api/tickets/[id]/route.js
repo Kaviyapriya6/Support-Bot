@@ -1,21 +1,25 @@
 import { dbConnect } from '../../../lib/mongodb';
 import Ticket from '../../../models/Ticket';
 
-export async function GET(req, { params }) {
+export async function GET(req, context) {
   await dbConnect();
-  const ticket = await Ticket.findById(params.id);
+  const { params } = context;
+  const resolvedParams = await params;
+  const ticket = await Ticket.findById(resolvedParams.id);
   if (!ticket) {
     return Response.json({ error: 'Not found' }, { status: 404 });
   }
   return Response.json(ticket);
 }
 
-export async function PUT(req, { params }) {
+export async function PUT(req, context) {
   await dbConnect();
+  const { params } = context;
+  const resolvedParams = await params;
   const data = await req.json();
 
   const updatedTicket = await Ticket.findByIdAndUpdate(
-    params.id,
+    resolvedParams.id,
     data,
     { new: true, runValidators: true }
   );
@@ -27,9 +31,12 @@ export async function PUT(req, { params }) {
   return Response.json(updatedTicket);
 }
 
-export async function DELETE(req, { params }) {
+export async function DELETE(req, context) {
+  
   await dbConnect();
-  const deleted = await Ticket.findByIdAndDelete(params.id);
+  const { params } = context;
+  const resolvedParams = await params;
+  const deleted = await Ticket.findByIdAndDelete(resolvedParams.id);
   if (!deleted) {
     return Response.json({ error: 'Not found' }, { status: 404 });
   }
