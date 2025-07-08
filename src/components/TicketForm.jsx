@@ -374,144 +374,107 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                         </Typography>
                       </Stack>
                       
-                      <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                          <FormControl fullWidth>
-                            <InputLabel>Issue Type</InputLabel>
-                            <Select
-                              name="issueType"
-                              value={formik.values.issueType || ''}
-                              onChange={formik.handleChange}
-                              error={formik.touched.issueType && Boolean(formik.errors.issueType)}
-                              sx={{
-                                borderRadius: 2,
-                                bgcolor: 'white',
-                                minHeight: 56,
-                                '& .MuiSelect-select': {
-                                  minHeight: '24px !important',
-                                  display: 'flex',
-                                  alignItems: 'center'
-                                }
-                              }}
-                              MenuProps={{
-                                PaperProps: {
-                                  sx: {
-                                    maxHeight: 300,
-                                    '& .MuiMenuItem-root': {
-                                      whiteSpace: 'normal',
-                                      wordWrap: 'break-word'
-                                    }
-                                  }
-                                }
-                              }}
-                              displayEmpty
-                              renderValue={(selected) => {
-                                if (!selected) {
-                                  return <Typography sx={{ color: '#9ca3af' }}>Select Issue Type</Typography>;
-                                }
-                                return selected;
-                              }}
-                            >
-                              <MenuItem value="Technical">
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 500 }}>Technical Support</Typography>
-                                  <Typography variant="caption" sx={{ color: '#64748b' }}>Hardware, software, or system issues</Typography>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem value="Billing">
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 500 }}>Billing & Payment</Typography>
-                                  <Typography variant="caption" sx={{ color: '#64748b' }}>Invoice, payment, or account issues</Typography>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem value="General">
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 500 }}>General Inquiry</Typography>
-                                  <Typography variant="caption" sx={{ color: '#64748b' }}>Questions, feedback, or general support</Typography>
-                                </Box>
-                              </MenuItem>
-                            </Select>
-                            {formik.touched.issueType && formik.errors.issueType && (
-                              <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, ml: 2 }}>
-                                {formik.errors.issueType}
-                              </Typography>
-                            )}
-                          </FormControl>
-                        </Grid>
-                        
-                        <Grid item xs={12}>
-                          <FormControl fullWidth>
-                            <InputLabel>Priority Level</InputLabel>
-                            <Select
-                              name="priority"
-                              value={formik.values.priority || ''}
-                              onChange={formik.handleChange}
-                              error={formik.touched.priority && Boolean(formik.errors.priority)}
-                              sx={{
-                                borderRadius: 2,
-                                bgcolor: 'white',
-                                minHeight: 56,
-                                '& .MuiSelect-select': {
-                                  minHeight: '24px !important',
-                                  display: 'flex',
-                                  alignItems: 'center'
-                                }
-                              }}
-                              MenuProps={{
-                                PaperProps: {
-                                  sx: {
-                                    maxHeight: 300,
-                                    '& .MuiMenuItem-root': {
-                                      whiteSpace: 'normal',
-                                      wordWrap: 'break-word'
-                                    }
-                                  }
-                                }
-                              }}
-                              displayEmpty
-                              renderValue={(selected) => {
-                                if (!selected) {
-                                  return <Typography sx={{ color: '#9ca3af' }}>Select Priority Level</Typography>;
-                                }
-                                return (
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Chip 
-                                      label={selected} 
-                                      color={selected === 'High' ? 'error' : selected === 'Medium' ? 'warning' : 'success'} 
-                                      size="small" 
-                                    />
-                                    <Typography variant="body2">{selected} Priority</Typography>
-                                  </Box>
-                                );
-                              }}
-                            >
-                              <MenuItem value="Low">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Chip label="Low" color="success" size="small" />
-                                  <Typography variant="body2">Low Priority</Typography>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem value="Medium">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Chip label="Med" color="warning" size="small" />
-                                  <Typography variant="body2">Medium Priority</Typography>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem value="High">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Chip label="High" color="error" size="small" />
-                                  <Typography variant="body2">High Priority</Typography>
-                                </Box>
-                              </MenuItem>
-                            </Select>
-                            {formik.touched.priority && formik.errors.priority && (
-                              <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, ml: 2 }}>
-                                {formik.errors.priority}
-                              </Typography>
-                            )}
-                          </FormControl>
-                        </Grid>
-                      </Grid>
+   <Grid item xs={12}>
+  <TextField
+    fullWidth
+    name="issueType"
+    label="Issue Type"
+    value={formik.values.issueType || ''}
+    onChange={formik.handleChange}
+    onBlur={formik.handleBlur}
+    error={formik.touched.issueType && Boolean(formik.errors.issueType)}
+    helperText={formik.touched.issueType && formik.errors.issueType}
+    placeholder="Enter the type of issue (e.g., Technical, Billing, General)"
+    sx={{
+      '& .MuiOutlinedInput-root': {
+        borderRadius: 2,
+        bgcolor: 'white',
+        minHeight: 56,
+      },
+      '& .MuiInputLabel-root': {
+        color: '#374151',
+      },
+      '& .MuiOutlinedInput-input': {
+        padding: '16px 14px',
+      }
+    }}
+  />
+</Grid>
+
+<Grid item xs={12}>
+  <FormControl fullWidth>
+    <InputLabel>Priority Level</InputLabel>
+    <Select
+      name="priority"
+      value={formik.values.priority || ''}
+      onChange={formik.handleChange}
+      error={formik.touched.priority && Boolean(formik.errors.priority)}
+      sx={{
+        borderRadius: 2,
+        bgcolor: 'white',
+        minHeight: 56,
+        '& .MuiSelect-select': {
+          minHeight: '24px !important',
+          display: 'flex',
+          alignItems: 'center'
+        }
+      }}
+      MenuProps={{
+        PaperProps: {
+          sx: {
+            maxHeight: 300,
+            '& .MuiMenuItem-root': {
+              whiteSpace: 'normal',
+              wordWrap: 'break-word'
+            }
+          }
+        }
+      }}
+      displayEmpty
+      renderValue={(selected) => {
+        if (!selected) {
+          return <Typography sx={{ color: '#9ca3af' }}></Typography>;
+        }
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip 
+              label={selected} 
+              color={selected === 'High' ? 'error' : selected === 'Medium' ? 'warning' : 'success'} 
+              size="small" 
+            />
+            <Typography variant="body2">{selected} Priority</Typography>
+          </Box>
+        );
+      }}
+    >
+      <MenuItem value="Low">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip label="Low" color="success" size="small" />
+          <Typography variant="body2">Low Priority</Typography>
+        </Box>
+      </MenuItem>
+      <MenuItem value="Medium">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip label="Med" color="warning" size="small" />
+          <Typography variant="body2">Medium Priority</Typography>
+        </Box>
+      </MenuItem>
+      <MenuItem value="High">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip label="High" color="error" size="small" />
+          <Typography variant="body2">High Priority</Typography>
+        </Box>
+      </MenuItem>
+    </Select>
+    {formik.touched.priority && formik.errors.priority && (
+      <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, ml: 2 }}>
+        {formik.errors.priority}
+      </Typography>
+    )}
+  </FormControl>
+</Grid>
+
+
 
                       {/* Current Values Display */}
                       <Box sx={{ mt: 4 }}>
