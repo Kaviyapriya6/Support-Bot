@@ -27,10 +27,10 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validationSchema = Yup.object({
-    customerId: Yup.string()
-      .required('Customer ID is required')
-      .min(3, 'Customer ID must be at least 3 characters')
-      .max(50, 'Customer ID must not exceed 50 characters'),
+    customerName: Yup.string()
+      .required('Customer Name is required')
+      .min(3, 'Customer Name must be at least 3 characters')
+      .max(50, 'Customer Name must not exceed 50 characters'),
     email: Yup.string()
       .email('Please enter a valid email address')
       .required('Email is required')
@@ -92,7 +92,7 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
 
   const formik = useFormik({
     initialValues: initialValues || {
-      customerId: '',
+      customerName: '',
       email: '',
       phone: '',
       ticketId: '',
@@ -294,14 +294,14 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Customer ID"
-                        name="customerId"
-                        value={formik.values.customerId || ''}
+                        label="Customer Name"
+                        name="customerName"
+                        value={formik.values.customerName || ''}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        error={formik.touched.customerId && Boolean(formik.errors.customerId)}
-                        helperText={formik.touched.customerId && formik.errors.customerId}
-                        placeholder="Enter customer ID (3-50 characters)"
+                        error={formik.touched.customerName && Boolean(formik.errors.customerName)}
+                        helperText={formik.touched.customerName && formik.errors.customerName}
+                        placeholder="Enter customer name (3-50 characters)"
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
