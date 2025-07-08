@@ -13,7 +13,8 @@ import {
   Add as AddIcon,
   Search as SearchIcon,
   FilterList as FilterIcon,
-  Assignment as AssignmentIcon
+  Assignment as AssignmentIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 
@@ -311,7 +312,7 @@ export default function TicketsPage() {
     {
       field: 'actions', 
       headerName: 'Actions', 
-      width: 120, 
+      width: 160, 
       sortable: false, 
       renderCell: ({ row }) => (
         <Box sx={{ 
@@ -321,6 +322,19 @@ export default function TicketsPage() {
           py: 0.5
         }}>
           <Stack direction="row" spacing={0.5}>
+            <IconButton 
+              size="small"
+              color="info" 
+              onClick={() => router.push(`/tickets/view/${row._id}`)}
+              sx={{
+                '&:hover': {
+                  bgcolor: 'info.light',
+                  color: 'white'
+                }
+              }}
+            >
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
             <IconButton 
               size="small"
               color="primary" 
