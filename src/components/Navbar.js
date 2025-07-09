@@ -25,7 +25,11 @@ import {
   Description,
   Settings,
   AccountCircle,
-  ExpandMore
+  ExpandMore,ConfirmationNumber,
+  Email,
+  Person,
+  Business,
+  PersonOutline
 } from '@mui/icons-material';
 
 const Navbar = () => {
@@ -33,6 +37,10 @@ const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const router = useRouter();
+
+  const [newMenuAnchor, setNewMenuAnchor] = useState(null);
+const handleNewClick = (event) => setNewMenuAnchor(event.currentTarget);
+const handleNewClose = () => setNewMenuAnchor(null);
 
   // Function to get page title based on pathname
   const getPageTitle = () => {
@@ -151,34 +159,46 @@ const Navbar = () => {
           </Box>
 
           {/* New button */}
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => router.push('/tickets/create')}
-            sx={{
-              backgroundColor: '#059669',
-              '&:hover': { backgroundColor: '#047857' },
-              textTransform: 'none',
-              fontWeight: 600,
-            }}
-          >
-            New
-          </Button>
-          {/* <Button 
-              variant="contained" 
-              startIcon={<AddIcon />}
-              onClick={() => router.push('/tickets/create')}
-              sx={{ 
-                bgcolor: 'primary.main',
-                '&:hover': { bgcolor: 'primary.dark' },
-                px: 3,
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600
-              }}
-            >
-              Create Ticket
-            </Button> */}
+         
+          <Box sx={{ position: 'relative' }}>
+  <Button
+    variant="contained"
+    startIcon={<Add />}
+    endIcon={<ExpandMore />}
+    onClick={handleNewClick}
+    sx={{
+      backgroundColor: '#059669',
+      '&:hover': { backgroundColor: '#047857' },
+      textTransform: 'none',
+      fontWeight: 600,
+    }}
+  >
+    New
+  </Button>
+   <Menu
+    anchorEl={newMenuAnchor}
+    open={Boolean(newMenuAnchor)}
+    onClose={handleNewClose}
+    PaperProps={{ sx: { minWidth: 180 } }}
+  >
+    <MenuItem onClick={() => { handleNewClose(); router.push('/tickets/create'); }}>
+      <ConfirmationNumber fontSize="small" sx={{ mr: 1 }} /> Ticket
+    </MenuItem>
+    <MenuItem onClick={handleNewClose}>
+      <Email fontSize="small" sx={{ mr: 1 }} /> Email
+    </MenuItem>
+    <MenuItem onClick={() => { handleNewClose(); router.push('/contacts/create'); }}>
+      <Person fontSize="small" sx={{ mr: 1 }} /> Contact
+    </MenuItem>
+    <MenuItem onClick={() => { handleNewClose(); router.push('/company/create'); }}>
+      <Business fontSize="small" sx={{ mr: 1 }} /> Company
+    </MenuItem>
+    <MenuItem onClick={handleNewClose}>
+      <PersonOutline fontSize="small" sx={{ mr: 1 }} /> Agent
+    </MenuItem>
+  </Menu>
+</Box>
+        
 
           {/* Search */}
           <TextField

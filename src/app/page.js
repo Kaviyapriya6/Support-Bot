@@ -437,51 +437,7 @@ export default function DashboardPage() {
     }}>
       <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
         {/* Header */}
-        <Box sx={{ 
-          mb: 4,
-          p: 3,
-          bgcolor: 'white',
-          borderRadius: 2,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <Box sx={{ 
-                p: 1.5, 
-                bgcolor: 'primary.main', 
-                borderRadius: 2,
-                color: 'white'
-              }}>
-                <DashboardIcon sx={{ fontSize: 28 }} />
-              </Box>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                  Dashboard
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
-                  Your trial ends in 20 days
-                </Typography>
-              </Box>
-            </Stack>
-            
-            <Button 
-              variant="contained" 
-              startIcon={<AddIcon />}
-              onClick={() => router.push('/tickets/create')}
-              sx={{ 
-                bgcolor: 'primary.main',
-                '&:hover': { bgcolor: 'primary.dark' },
-                px: 3,
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600
-              }}
-            >
-              New
-            </Button>
-          </Stack>
-        </Box>
+        
 
         {/* Main Stats Cards */}
         <Box sx={{ mb: 4 }}>
