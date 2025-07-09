@@ -13,12 +13,13 @@ const { params } = context;
   return Response.json(contact);
 }
 
-export async function PUT(req, { params }) {
+export async function PUT(req, context) {
   await dbConnect();
-
+  const { params } = context;
+const resolvedParams = await params;
   const body = await req.json();
 
-  const updatedContact = await Contact.findByIdAndUpdate(params.id, body, {
+  const updatedContact = await Contact.findByIdAndUpdate(resolvedParams.id, body, {
     new: true,
     runValidators: true,
   });
