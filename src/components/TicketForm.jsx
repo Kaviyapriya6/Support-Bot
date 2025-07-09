@@ -25,6 +25,8 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
   const router = useRouter();
   const [fileName, setFileName] = useState(initialValues?.fileName || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOtherIssueType, setShowOtherIssueType] = useState(false);
+  const [otherIssueType, setOtherIssueType] = useState('');
 
   const validationSchema = Yup.object({
     customerName: Yup.string()
@@ -176,6 +178,24 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
       setFileName(file.name);
       formik.setFieldValue('file', file);
     }
+  };
+
+  const handleIssueTypeChange = (event) => {
+    const value = event.target.value;
+    if (value === 'Other') {
+      setShowOtherIssueType(true);
+      formik.setFieldValue('issueType', '');
+    } else {
+      setShowOtherIssueType(false);
+      setOtherIssueType('');
+      formik.setFieldValue('issueType', value);
+    }
+  };
+
+  const handleOtherIssueTypeChange = (event) => {
+    const value = event.target.value;
+    setOtherIssueType(value);
+    formik.setFieldValue('issueType', value);
   };
 
   return (
@@ -411,30 +431,73 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                   </Grid>
                   {/* Issue Type */}
                   <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      name="issueType"
-                      label="Issue Type"
-                      value={formik.values.issueType || ''}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      error={formik.touched.issueType && Boolean(formik.errors.issueType)}
-                      helperText={formik.touched.issueType && formik.errors.issueType}
-                      placeholder="e.g., Technical, Billing"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          bgcolor: 'white',
-                          height: 56,
-                        },
-                        '& .MuiInputLabel-root': {
-                          color: '#374151',
-                        },
-                        '& .MuiOutlinedInput-input': {
-                          padding: '16px 14px',
-                        }
-                      }}
-                    />
+                    <Box>
+                      <FormControl fullWidth>
+                        {/* <InputLabel>Issue Type</InputLabel> */}
+                        <Select
+                          name="issueType"
+                          value={showOtherIssueType ? 'Other' : (formik.values.issueType || '')}
+                          onChange={handleIssueTypeChange}
+                          onBlur={formik.handleBlur}
+                          error={formik.touched.issueType && Boolean(formik.errors.issueType)}
+                          sx={{
+                            borderRadius: 2,
+                            bgcolor: 'white',
+                            height: 56,
+                            '& .MuiSelect-select': {
+                              height: '24px !important',
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '16px 14px',
+                            }
+                          }}
+                          displayEmpty
+                        >
+                          <MenuItem value="">
+                            <Typography sx={{ color: '#9ca3af' }}>Select issue type</Typography>
+                          </MenuItem>
+                          <MenuItem value="Technical">Technical Issue</MenuItem>
+                          <MenuItem value="Billing">Billing Issue</MenuItem>
+                          <MenuItem value="Account">Account Issue</MenuItem>
+                          <MenuItem value="General">General Inquiry</MenuItem>
+                          <MenuItem value="Bug Report">Bug Report</MenuItem>
+                          <MenuItem value="Feature Request">Feature Request</MenuItem>
+                          <MenuItem value="Other">Other</MenuItem>
+                        </Select>
+                        {formik.touched.issueType && formik.errors.issueType && (
+                          <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, ml: 2 }}>
+                            {formik.errors.issueType}
+                          </Typography>
+                        )}
+                      </FormControl>
+                      
+                      {showOtherIssueType && (
+                        <TextField
+                          fullWidth
+                          label="Specify Issue Type"
+                          value={otherIssueType}
+                          onChange={handleOtherIssueTypeChange}
+                          onBlur={formik.handleBlur}
+                          error={formik.touched.issueType && Boolean(formik.errors.issueType)}
+                          helperText={formik.touched.issueType && formik.errors.issueType}
+                          placeholder="Please specify the issue type"
+                          sx={{
+                            mt: 2,
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              bgcolor: 'white',
+                              height: 56,
+                            },
+                            '& .MuiInputLabel-root': {
+                              color: '#374151',
+                            },
+                            '& .MuiOutlinedInput-input': {
+                              padding: '16px 14px',
+                            }
+                          }}
+                        />
+                      )}
+                    </Box>
                   </Grid>
                   {/* Detailed Description */}
                   <Grid item xs={12} md={3}>
