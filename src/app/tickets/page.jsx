@@ -989,7 +989,7 @@ export default function TicketsPage() {
     }}>
       <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
         {/* Header */}
-        <Box sx={{ 
+        {/* <Box sx={{ 
           mb: 4,
           p: 3,
           bgcolor: 'white',
@@ -1033,7 +1033,7 @@ export default function TicketsPage() {
               Create Ticket
             </Button>
           </Stack>
-        </Box>
+        </Box> */}
 
         {/* Filters */}
         <Box sx={{ 

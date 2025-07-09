@@ -204,83 +204,9 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
       bgcolor: '#f8fafc',
       p: 3
     }}>
-      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+      {/* <Box sx={{ maxWidth: 1200, mx: 'auto' }}> */}
         {/* Header */}
-        <Box sx={{ 
-          mb: 4,
-          p: 3,
-          bgcolor: 'white',
-          borderRadius: 2,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <Box sx={{ 
-                p: 1.5, 
-                bgcolor: 'primary.main', 
-                borderRadius: 2,
-                color: 'white'
-              }}>
-                <AssignmentIcon sx={{ fontSize: 28 }} />
-              </Box>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                  {mode === 'create' ? 'Create New Ticket' : 'Edit Ticket'}
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
-                  {mode === 'create' ? 'Fill in the details to create a new support ticket' : 'Update the ticket information'}
-                </Typography>
-              </Box>
-            </Stack>
-            
-            {/* Action Buttons in Header */}
-            <Stack direction="row" spacing={2}>
-              <Button 
-                variant="outlined" 
-                onClick={() => router.back()}
-                startIcon={<CancelIcon />}
-                sx={{ 
-                  borderColor: '#e2e8f0',
-                  color: '#64748b',
-                  '&:hover': {
-                    borderColor: '#cbd5e1',
-                    bgcolor: '#f8fafc'
-                  }
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                form="ticket-form"
-                variant="contained" 
-                disabled={isSubmitting || !formik.isValid}
-                startIcon={<SaveIcon />}
-                sx={{ 
-                  bgcolor: 'primary.main',
-                  '&:hover': { bgcolor: 'primary.dark' },
-                  px: 3
-                }}
-              >
-                {isSubmitting ? 'Saving...' : 'Save Ticket'}
-              </Button>
-            </Stack>
-          </Stack>
-          
-          {isSubmitting && (
-            <LinearProgress 
-              sx={{ 
-                mt: 2, 
-                borderRadius: 1,
-                bgcolor: '#e2e8f0',
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: 1
-                }
-              }} 
-            />
-          )}
-        </Box>
+       
 
         {/* Main Form */}
         <Paper sx={{ 
@@ -683,9 +609,60 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                 </Box>
               </Grid>
             </Grid>
+
+            {/* Action Buttons at Bottom */}
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button 
+                variant="outlined" 
+                onClick={() => router.back()}
+                startIcon={<CancelIcon />}
+                sx={{ 
+                  borderColor: '#e2e8f0',
+                  color: '#64748b',
+                  px: 4,
+                  py: 1.5,
+                  '&:hover': {
+                    borderColor: '#cbd5e1',
+                    bgcolor: '#f8fafc'
+                  }
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                form="ticket-form"
+                variant="contained" 
+                disabled={isSubmitting || !formik.isValid}
+                startIcon={<SaveIcon />}
+                sx={{ 
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  px: 4,
+                  py: 1.5
+                }}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Ticket'}
+              </Button>
+            </Box>
+
+            {/* Loading Progress Bar */}
+            {isSubmitting && (
+              <Box sx={{ mt: 3 }}>
+                <LinearProgress 
+                  sx={{ 
+                    borderRadius: 1,
+                    bgcolor: '#e2e8f0',
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 1
+                    }
+                  }} 
+                />
+              </Box>
+            )}
           </form>
         </Paper>
-      </Box>
+      {/* </Box> */}
     </Box>
   );
 }
