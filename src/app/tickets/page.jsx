@@ -710,7 +710,7 @@ export default function TicketsPage() {
 
   const filteredTickets = tickets.filter(t => {
     const matchesSearch = t.subject?.toLowerCase().includes(search.toLowerCase()) ||
-      t.customerId?.toLowerCase().includes(search.toLowerCase()) ||
+      t.customerName?.toLowerCase().includes(search.toLowerCase()) ||
       t.ticketId?.toLowerCase().includes(search.toLowerCase()) ||
       t.email?.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
@@ -748,8 +748,8 @@ export default function TicketsPage() {
       )
     },
     { 
-      field: 'customerId', 
-      headerName: 'Customer ID', 
+      field: 'customerName', 
+      headerName: 'Customer Name', 
       width: 120,
       renderCell: ({ value }) => (
         <Typography variant="body2" sx={{ fontWeight: 500 }}>
