@@ -1,49 +1,32 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import ContactForm from '../../../components/ContactForm'; // Adjust the import path as necessary
-import { addContact } from '../../lib/contacts'; // Adjust the import path as necessary
+import ContactForm from '.././../../components/ContactForm'; // Adjust the import path as necessary
 import { Box, Alert } from '@mui/material';
 import { useState } from 'react';
 
 const CreateContactPage = () => {
   const router = useRouter();
-  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+  const [notification, setNotification] = useState(null);
 
-  const handleSubmit = (formData) => {
-    try {
-      addContact(formData);
-      setNotification({
-        open: true,
-        message: 'Contact created successfully!',
-        severity: 'success'
-      });
-      
-      // Redirect after a short delay to show the notification
-      setTimeout(() => {
-        router.push('/contact');
-      }, 1500);
-    } catch (error) {
-      setNotification({
-        open: true,
-        message: 'Failed to create contact. Please try again.',
-        severity: 'error'
-      });
+  const handleSubmit = async (data) => {
+    const res = await fetch('/api/contacts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      setNotification({ message: 'Created successfully!', severity: 'success' });
+      setTimeout(() => router.push('/contacts'), 1500);
+    } else {
+      setNotification({ message: 'Failed to create.', severity: 'error' });
     }
   };
 
   return (
     <Box sx={{ p: 3 }}>
       <ContactForm onSubmit={handleSubmit} />
-      
-      {notification.open && (
-        <Alert
-          severity={notification.severity}
-          onClose={() => setNotification({ ...notification, open: false })}
-          sx={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}
-        >
-          {notification.message}
-        </Alert>
+      {notification && (
+        <Alert severity={notification.severity} sx={{ mt: 2 }}>{notification.message}</Alert>
       )}
     </Box>
   );
