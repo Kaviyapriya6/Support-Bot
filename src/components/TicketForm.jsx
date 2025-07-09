@@ -433,7 +433,7 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                   <Grid item xs={12} md={3}>
                     <Box>
                       <FormControl fullWidth>
-                        <InputLabel>Issue Type</InputLabel>
+                        {/* <InputLabel>Issue Type</InputLabel> */}
                         <Select
                           name="issueType"
                           value={showOtherIssueType ? 'Other' : (formik.values.issueType || '')}
