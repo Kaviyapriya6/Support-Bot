@@ -1,73 +1,47 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import ContactForm from '@/components/ContactForm';
-import { getContactById, updateContact } from '@/lib/contacts';
-import { Box, Alert, Typography } from '@mui/material';
+import { useRouter, useParams } from 'next/navigation';
+import { updateContact } from '../../../lib/Contactapi'; 
+import ContactForm from '../../../../components/ContactForm'; 
 
-const EditContactPage = ({ params }) => {
+const EditContactPage = () => {
   const router = useRouter();
+  const params = useParams();
   const [contact, setContact] = useState(null);
-  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const contactData = getContactById(params.id);
-    if (contactData) {
-      setContact(contactData);
-    } else {
-      router.push('/contact');
-    }
-  }, [params.id, router]);
+    const fetchContact = async () => {
+      const res = await fetch(`/api/contacts/${params.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setContact(data);
+      }
+      setLoading(false);
+    };
 
-  const handleSubmit = (formData) => {
+    fetchContact();
+  }, [params.id]);
+
+  const handleSubmit = async (formData) => {
     try {
-      updateContact(params.id, formData);
-      setNotification({
-        open: true,
-        message: 'Contact updated successfully!',
-        severity: 'success'
-      });
-      
-      // Redirect after a short delay to show the notification
-      setTimeout(() => {
-        router.push('/contact');
-      }, 1500);
-    } catch (error) {
-      setNotification({
-        open: true,
-        message: 'Failed to update contact. Please try again.',
-        severity: 'error'
-      });
+      await updateContact(params.id, formData);
+      router.push('/contacts');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update contact');
     }
   };
 
-  if (!contact) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography>Loading...</Typography>
-      </Box>
-    );
-  }
+  if (loading) return <p>Loading…</p>;
+  if (!contact) return <p>Contact not found.</p>;
 
   return (
-    <Box sx={{ p: 3 }}>
-      <ContactForm
-        onSubmit={handleSubmit}
-        initialData={contact}
-        isEdit={true}
-      />
-      
-      {notification.open && (
-        <Alert
-          severity={notification.severity}
-          onClose={() => setNotification({ ...notification, open: false })}
-          sx={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}
-        >
-          {notification.message}
-        </Alert>
-      )}
-    </Box>
+    <div>
+      {/* <h1>Edit Contact</h1> */}
+      <ContactForm initialData={contact} onSubmit={handleSubmit} isEdit />
+    </div>
   );
 };
 
