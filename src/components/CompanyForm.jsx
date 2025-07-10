@@ -5,13 +5,14 @@ import { TextField, Button, CircularProgress, Alert, Box } from '@mui/material';
 
 export default function AddCompanyForm({ editMode = false, initialData = {} }) {
   const router = useRouter();
+
   const [formData, setFormData] = useState({
-    companyName: '',
+    name: '',
     fieldView: 'allFields',
     searchField: '',
     description: '',
     notes: '',
-    domains: '',
+    domain: '',
     healthScore: '',
     accountTier: '',
     renewalDate: '',
@@ -25,16 +26,16 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
     type: 'success'
   });
 
-  // Load initial data if in edit mode
+  // ✅ Load initial data for edit mode (use correct field names!)
   useEffect(() => {
     if (editMode && initialData) {
       setFormData({
-        companyName: initialData.companyName || '',
+        name: initialData.name || '',
         fieldView: initialData.fieldView || 'allFields',
         searchField: initialData.searchField || '',
         description: initialData.description || '',
         notes: initialData.notes || '',
-        domains: initialData.domains || '',
+        domain: initialData.domain || '',
         healthScore: initialData.healthScore || '',
         accountTier: initialData.accountTier || '',
         renewalDate: initialData.renewalDate || '',
@@ -44,20 +45,20 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
   }, [editMode, initialData]);
 
   const handleInputChange = (field) => (event) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [field]: event.target.value
-    });
+    }));
   };
 
   const handleCancel = () => {
     setFormData({
-      companyName: '',
+      name: '',
       fieldView: 'allFields',
       searchField: '',
       description: '',
       notes: '',
-      domains: '',
+      domain: '',
       healthScore: '',
       accountTier: '',
       renewalDate: '',
@@ -73,8 +74,9 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
     }, 4000);
   };
 
+  // ✅ Safe validation check
   const validateForm = () => {
-    if (!formData.companyName.trim()) {
+    if (typeof formData.name !== 'string' || (formData.name || '').trim() === '') {
       showNotification('Company name is required', 'error');
       return false;
     }
@@ -98,7 +100,9 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
         body: JSON.stringify(formData)
       });
 
-      if (!res.ok) throw new Error(`Failed to ${editMode ? 'update' : 'add'} company`);
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || `Failed to ${editMode ? 'update' : 'add'} company`);
+
       showNotification(`Company ${editMode ? 'updated' : 'added'} successfully`, 'success');
       router.push('/company');
     } catch (err) {
@@ -452,26 +456,25 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
             
             {/* Company Name - Mandatory Field */}
             <div style={styles.fieldGroup}>
-              <p style={styles.mandatoryText}>
-                This field is mandatory
-              </p>
-              <label style={styles.label}>
-                Company Name*
-              </label>
+              <p style={styles.mandatoryText}>This field is mandatory</p>
+              
+              <label style={styles.label}>Company Name*</label>
+              
               <input
                 type="text"
-                value={formData.companyName}
-                onChange={handleInputChange('companyName')}
+                value={formData.name}
+                onChange={handleInputChange('name')}
                 required
                 className="form-input"
                 style={{
                   ...styles.input,
-                  ...(formData.companyName.trim() ? styles.mandatoryInput : {}),
-                  ...(!formData.companyName.trim() && formData.companyName !== '' ? styles.errorInput : {})
+                  ...((formData.name || '').trim() ? styles.mandatoryInput : {}),
+                  ...(!(formData.name || '').trim() && formData.name !== '' ? styles.errorInput : {})
                 }}
                 placeholder="Enter company name"
               />
-              {!formData.companyName.trim() && formData.companyName !== '' && (
+              
+              {!(formData.name || '').trim() && formData.name !== '' && (
                 <p style={styles.errorText}>Company name is required</p>
               )}
             </div>
@@ -555,8 +558,8 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
                   Domains for this company
                 </label>
                 <select
-                  value={formData.domains}
-                  onChange={handleInputChange('domains')}
+                  value={formData.domain}
+                  onChange={handleInputChange('domain')}
                   className="form-select"
                   style={styles.select}
                 >
@@ -669,11 +672,11 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
               <button
                 type="button"
                 onClick={handleCreateCompany}
-                disabled={loading || !formData.companyName.trim()}
+                disabled={loading || !(formData.name || '').trim()}
                 className="create-button"
                 style={{
                   ...styles.createButton,
-                  ...(loading || !formData.companyName.trim() ? styles.createButtonDisabled : {})
+                  ...(loading || !(formData.name || '').trim() ? styles.createButtonDisabled : {})
                 }}
               >
                 {loading ? (

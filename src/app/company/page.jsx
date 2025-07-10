@@ -23,6 +23,7 @@ const CompanyContactsList = () => {
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [companyToDelete, setCompanyToDelete] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchCompanies = async () => {
     try {
@@ -36,10 +37,15 @@ const CompanyContactsList = () => {
         }
       });
 
-      if (!response.ok) throw new Error('Failed to fetch companies');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to fetch companies`);
+      }
+      
       const data = await response.json();
-      setCompanies(data);
+      setCompanies(Array.isArray(data) ? data : []);
     } catch (err) {
+      console.error('Fetch companies error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -50,8 +56,28 @@ const CompanyContactsList = () => {
     fetchCompanies();
   }, []);
 
+  const handleEditClick = (company) => {
+    try {
+      console.log('Editing company:', company);
+      // Navigate to edit page
+      router.push(`/company/edit/${company._id}`);
+    } catch (err) {
+      console.error('Edit navigation error:', err);
+      showNotification('Failed to navigate to edit page', 'error');
+    }
+  };
+
+  const handleDeleteClick = (company) => {
+    console.log('Delete clicked for company:', company);
+    setCompanyToDelete(company);
+    setConfirmDelete(true);
+  };
+
   const deleteCompany = async (id) => {
     try {
+      setActionLoading(true);
+      console.log('Deleting company with ID:', id);
+      
       const response = await fetch(`/api/company/${id}`, {
         method: 'DELETE',
         headers: {
@@ -60,17 +86,41 @@ const CompanyContactsList = () => {
         }
       });
 
-      if (!response.ok) throw new Error('Delete request failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: Delete request failed`);
+      }
 
+      // Remove company from local state
       setCompanies(prev => prev.filter(c => c._id !== id));
       showNotification('Company deleted successfully', 'success');
     } catch (err) {
-      showNotification('Failed to delete company', 'error');
+      console.error('Delete company error:', err);
+      showNotification(`Failed to delete company: ${err.message}`, 'error');
+    } finally {
+      setActionLoading(false);
     }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (companyToDelete) {
+      await deleteCompany(companyToDelete._id);
+      setConfirmDelete(false);
+      setCompanyToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDelete(false);
+    setCompanyToDelete(null);
   };
 
   const showNotification = (message, type = 'success') => {
     setNotification({ show: true, message, type });
+  };
+
+  const handleCloseNotification = () => {
+    setNotification({ show: false, message: '', type: 'success' });
   };
 
   const generateAvatarColor = (name) => {
@@ -78,61 +128,93 @@ const CompanyContactsList = () => {
     return colors[name.length % colors.length];
   };
 
-  const getInitials = (name) =>
-    name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+  const getInitials = (name) => {
+    if (!name || typeof name !== 'string') return '??';
+    return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+  };
 
   return (
     <Box sx={{ p: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <BusinessIcon sx={{ mr: 1, color: 'primary.main' }} />
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>Companies ({companies.length})</Typography>
-        <IconButton onClick={fetchCompanies}><RefreshIcon /></IconButton>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          Companies ({companies.length})
+        </Typography>
+        <IconButton onClick={fetchCompanies} disabled={loading}>
+          <RefreshIcon />
+        </IconButton>
       </Box>
 
       {loading && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
           <CircularProgress size={24} />
           <Typography>Loading companies...</Typography>
         </Box>
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
       )}
 
       {!loading && companies.length === 0 && (
-        <Typography>No companies found.</Typography>
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Typography color="text.secondary">
+            No companies found.
+          </Typography>
+        </Box>
       )}
 
       <List>
         {companies.map((company) => (
           <React.Fragment key={company._id}>
             <ListItem
-              sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}
+              sx={{ 
+                '&:hover': { backgroundColor: '#f9f9f9' },
+                cursor: 'pointer'
+              }}
               secondaryAction={
-                <>
-                  <IconButton onClick={() => router.push(`/company/edit/${company._id}`)}>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <IconButton 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditClick(company);
+                    }}
+                    disabled={actionLoading}
+                    size="small"
+                  >
                     <EditIcon fontSize="small" />
                   </IconButton>
-                  <IconButton onClick={() => {
-                    setCompanyToDelete(company);
-                    setConfirmDelete(true);
-                  }}>
+                  <IconButton 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteClick(company);
+                    }}
+                    disabled={actionLoading}
+                    size="small"
+                    color="error"
+                  >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
-                </>
+                </Box>
               }
             >
               <ListItemIcon>
-                <Avatar sx={{ bgcolor: generateAvatarColor(company.name) }}>
-                  {getInitials(company.name)}
+                <Avatar sx={{ bgcolor: generateAvatarColor(company.name || 'Unknown') }}>
+                  {getInitials(company.name || 'Unknown')}
                 </Avatar>
               </ListItemIcon>
               <ListItemText
-                primary={company.name}
+                primary={company.name || 'Unnamed Company'}
                 secondary={company.industry || 'No Industry'}
               />
-              <Chip label={company.contacts || '--'} size="small" variant="outlined" />
+              <Chip 
+                label={company.contacts || '--'} 
+                size="small" 
+                variant="outlined" 
+                sx={{ mr: 8 }} // Add margin to prevent overlap with action buttons
+              />
             </ListItem>
             <Divider />
           </React.Fragment>
@@ -140,25 +222,34 @@ const CompanyContactsList = () => {
       </List>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
-        <DialogTitle>Delete Company</DialogTitle>
+      <Dialog 
+        open={confirmDelete} 
+        onClose={handleCancelDelete}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete <strong>{companyToDelete?.name}</strong>? This action cannot be undone.
+            Are you sure you want to delete <strong>{companyToDelete?.name}</strong>? 
+            This action cannot be undone and will permanently remove the company and all associated data.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDelete(false)}>Cancel</Button>
+          <Button 
+            onClick={handleCancelDelete}
+            disabled={actionLoading}
+          >
+            Cancel
+          </Button>
           <Button
-            onClick={async () => {
-              await deleteCompany(companyToDelete._id);
-              setConfirmDelete(false);
-              setCompanyToDelete(null);
-            }}
+            onClick={handleConfirmDelete}
             color="error"
             variant="contained"
+            disabled={actionLoading}
+            startIcon={actionLoading ? <CircularProgress size={16} /> : null}
           >
-            Delete
+            {actionLoading ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -167,11 +258,13 @@ const CompanyContactsList = () => {
       <Snackbar
         open={notification.show}
         autoHideDuration={4000}
-        onClose={() => setNotification({ show: false, message: '', type: 'success' })}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
           severity={notification.type}
-          onClose={() => setNotification({ show: false, message: '', type: 'success' })}
+          onClose={handleCloseNotification}
+          sx={{ width: '100%' }}
         >
           {notification.message}
         </Alert>
