@@ -1,7 +1,7 @@
 // /app/api/company/route.js
 
 import { NextResponse } from 'next/server';
-import dbConnect from '../../lib/Company'; // Default import
+import dbConnect from '../../lib/company'; // Default import // Named import to match other files
 import Company from '../../models/Company';
 
 // GET handler - fetch all companies
