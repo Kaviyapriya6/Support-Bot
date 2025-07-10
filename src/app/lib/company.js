@@ -1,21 +1,22 @@
-// src/lib/companies.js
-let companies = [];
+import mongoose from 'mongoose';
 
-export const addCompany = (companyData) => {
-  companies.push({ id: Date.now().toString(), ...companyData });
-};
+let isConnected = false;
 
-export const getCompanyById = (id) => {
-  return companies.find((c) => c.id === id);
-};
+const dbConnect = async () => {
+  if (isConnected) return;
 
-export const updateCompany = (id, updatedData) => {
-  const index = companies.findIndex((c) => c.id === id);
-  if (index !== -1) {
-    companies[index] = { ...companies[index], ...updatedData };
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    isConnected = true;
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
   }
 };
 
-export const getAllCompanies = () => {
-  return companies;
-};
+export default dbConnect;
