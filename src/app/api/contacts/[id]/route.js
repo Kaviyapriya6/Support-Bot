@@ -19,7 +19,8 @@ export async function PUT(req, context) {
 const resolvedParams = await params;
   const body = await req.json();
 
-  const updatedContact = await Contact.findByIdAndUpdate(resolvedParams.id, body, {
+  const updatedContact = await Contact.findByIdAndUpdate(resolvedParams.id
+    , body, {
     new: true,
     runValidators: true,
   });

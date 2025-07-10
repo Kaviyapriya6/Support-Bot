@@ -51,7 +51,7 @@ export default function AgentListPage() {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => router.push('/agent/create')}
+          onClick={() => router.push('/agents/create')}
         >
           New Agent
         </Button>
@@ -79,7 +79,7 @@ export default function AgentListPage() {
             </TableHead>
             <TableBody>
               {agents.map((agent) => (
-                <TableRow key={agent.id}>
+                <TableRow key={agent._id}>
                   <TableCell>
                     <Avatar src={agent.profileImage}>
                       {agent.email?.charAt(0).toUpperCase()}
@@ -89,13 +89,23 @@ export default function AgentListPage() {
                   <TableCell>{agent.agentType}</TableCell>
                   <TableCell>{agent.language}</TableCell>
                   <TableCell>
-                    {agent.roles?.map((role) => (
-                      <Chip key={role} label={role} size="small" sx={{ mr: 0.5 }} />
+                    {agent.roles?.map((role, index) => (
+                      <Chip
+                        key={`${agent._id}-role-${index}`}
+                        label={role}
+                        size="small"
+                        sx={{ mr: 0.5 }}
+                      />
                     ))}
                   </TableCell>
                   <TableCell>
-                    {agent.groups?.map((group) => (
-                      <Chip key={group} label={group} size="small" sx={{ mr: 0.5 }} />
+                    {agent.groups?.map((group, index) => (
+                      <Chip
+                        key={`${agent._id}-group-${index}`}
+                        label={group}
+                        size="small"
+                        sx={{ mr: 0.5 }}
+                      />
                     ))}
                   </TableCell>
                   <TableCell>
@@ -103,7 +113,7 @@ export default function AgentListPage() {
                       variant="outlined"
                       size="small"
                       startIcon={<EditIcon />}
-                      onClick={() => router.push(`/agent/edit/${agent.id}`)}
+                      onClick={() => router.push(`/agents/edit/${agent._id}`)}
                     >
                       Edit
                     </Button>

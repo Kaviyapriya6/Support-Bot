@@ -25,7 +25,7 @@ const teamSettings = [
     icon: <AgentsIcon color="primary" fontSize="medium" />,
     title: 'Agents',
     description: "Define agents' scope of work, type, language, and other details.",
-    link: '/agent', // 🔗 Route to app/agent/page.jsx
+    link: '/agents', // 🔗 Route to app/agent/page.jsx
   },
   {
     icon: <GroupsIcon color="primary" fontSize="medium" />,

@@ -115,36 +115,59 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>
+    <Box sx={{ maxWidth: 800, mx: 'auto', p: 3, bgcolor: '#f8f9fa', minHeight: '100vh' }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ 
+          fontWeight: 'bold', 
+          color: '#1a1a1a',
+          fontSize: '2rem'
+        }}>
           {isEdit ? 'Edit Agent' : 'Create New Agent'}
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
           {isEdit ? 'Update agent information and permissions' : 'Add a new agent to your team'}
         </Typography>
       </Box>
 
-      <Stack spacing={4}>
+      <Stack spacing={3}>
         {/* Agent Configuration */}
-        <Card elevation={2}>
-          <CardContent sx={{ p: 4 }}>
+        <Paper elevation={0} sx={{ bgcolor: 'white', border: '1px solid #e5e7eb' }}>
+          <Box sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <Person sx={{ mr: 1, color: 'primary.main' }} />
-              <Typography variant="h5" component="h2" sx={{ fontWeight: 'semibold' }}>
+              <Person sx={{ mr: 1.5, color: '#6b7280', fontSize: '1.25rem' }} />
+              <Typography variant="h6" component="h2" sx={{ 
+                fontWeight: 600, 
+                color: '#1a1a1a',
+                fontSize: '1.1rem'
+              }}>
                 Agent Configuration
               </Typography>
             </Box>
             
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: '#374151' }}>
+                  Agent Type *
+                </Typography>
                 <FormControl fullWidth>
-                  <InputLabel>Agent Type *</InputLabel>
                   <Select
                     value={formData.agentType}
                     onChange={(e) => handleInputChange('agentType', e.target.value)}
-                    label="Agent Type *"
+                    displayEmpty
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                        bgcolor: 'white',
+                        '& fieldset': { borderColor: '#d1d5db' },
+                        '&:hover fieldset': { borderColor: '#9ca3af' },
+                        '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+                      },
+                      '& .MuiSelect-select': {
+                        py: 1.5,
+                        fontSize: '0.95rem'
+                      }
+                    }}
                   >
                     {agentTypes.map((type) => (
                       <MenuItem key={type.value} value={type.value}>
@@ -156,21 +179,24 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
               </Grid>
 
               <Grid item xs={12} md={6}>
+                <Typography variant="body2" sx={{ mb: 2, fontWeight: 500, color: '#374151' }}>
+                  Work Type *
+                </Typography>
                 <FormControl component="fieldset">
-                  <FormLabel component="legend" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>
-                    Work Type *
-                  </FormLabel>
                   <RadioGroup
                     value={formData.workType}
                     onChange={(e) => handleInputChange('workType', e.target.value)}
+                    sx={{ gap: 1 }}
                   >
                     <FormControlLabel
                       value="fulltime"
-                      control={<Radio />}
+                      control={<Radio size="small" />}
                       label={
                         <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>Full Time</Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                            Full Time
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#6b7280' }}>
                             8 seats available
                           </Typography>
                         </Box>
@@ -178,11 +204,13 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
                     />
                     <FormControlLabel
                       value="occasional"
-                      control={<Radio />}
+                      control={<Radio size="small" />}
                       label={
                         <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>Occasional</Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                            Occasional
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#6b7280' }}>
                             3 day passes available
                           </Typography>
                         </Box>
@@ -192,42 +220,66 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
                 </FormControl>
               </Grid>
             </Grid>
-          </CardContent>
-        </Card>
+          </Box>
+        </Paper>
 
         {/* Agent Details */}
-        <Card elevation={2}>
-          <CardContent sx={{ p: 4 }}>
+        <Paper elevation={0} sx={{ bgcolor: 'white', border: '1px solid #e5e7eb' }}>
+          <Box sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <Email sx={{ mr: 1, color: 'primary.main' }} />
-              <Typography variant="h5" component="h2" sx={{ fontWeight: 'semibold' }}>
+              <Email sx={{ mr: 1.5, color: '#6b7280', fontSize: '1.25rem' }} />
+              <Typography variant="h6" component="h2" sx={{ 
+                fontWeight: 600, 
+                color: '#1a1a1a',
+                fontSize: '1.1rem'
+              }}>
                 Agent Details
               </Typography>
             </Box>
             
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: '#374151' }}>
+                  Email Address *
+                </Typography>
                 <TextField
                   fullWidth
-                  label="Email Address *"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="agent@company.com"
-                  required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '8px',
+                      bgcolor: 'white',
+                      '& fieldset': { borderColor: '#d1d5db' },
+                      '&:hover fieldset': { borderColor: '#9ca3af' },
+                      '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+                    },
+                    '& .MuiInputBase-input': {
+                      py: 1.5,
+                      fontSize: '0.95rem'
+                    }
+                  }}
                 />
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+                <Typography variant="body2" sx={{ mb: 2, fontWeight: 500, color: '#374151' }}>
                   Profile Photo
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Avatar 
                     src={imagePreview} 
-                    sx={{ width: 80, height: 80 }}
+                    sx={{ 
+                      width: 64, 
+                      height: 64, 
+                      bgcolor: '#f3f4f6',
+                      color: '#6b7280',
+                      fontSize: '1.5rem'
+                    }}
                   >
-                    {formData.email ? formData.email.charAt(0).toUpperCase() : 'A'}
+                    {formData.email ? formData.email.charAt(0).toUpperCase() : <Person />}
                   </Avatar>
                   <Box>
                     <input
@@ -242,39 +294,54 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
                         variant="outlined" 
                         component="span" 
                         startIcon={<PhotoCamera />}
-                        sx={{ mb: 1 }}
+                        size="small"
+                        sx={{ 
+                          borderRadius: '8px',
+                          textTransform: 'none',
+                          fontSize: '0.875rem',
+                          borderColor: '#d1d5db',
+                          color: '#374151',
+                          '&:hover': {
+                            borderColor: '#9ca3af',
+                            bgcolor: '#f9fafb'
+                          }
+                        }}
                       >
                         Upload Photo
                       </Button>
                     </label>
-                    <Typography variant="caption" display="block" color="text.secondary">
+                    <Typography variant="caption" display="block" sx={{ 
+                      mt: 1, 
+                      color: '#6b7280',
+                      fontSize: '0.75rem'
+                    }}>
                       Square images work best (400x400px)
                     </Typography>
-                    {imagePreview && (
-                      <Button 
-                        color="error" 
-                        size="small" 
-                        onClick={handleRemoveImage}
-                        startIcon={<Delete />}
-                        sx={{ mt: 1 }}
-                      >
-                        Remove
-                      </Button>
-                    )}
                   </Box>
                 </Box>
               </Grid>
 
               <Grid item xs={12} md={6}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: '#374151' }}>
+                  Timezone *
+                </Typography>
                 <FormControl fullWidth>
-                  <InputLabel>
-                    <Schedule sx={{ mr: 1, fontSize: 'small' }} />
-                    Timezone *
-                  </InputLabel>
                   <Select
                     value={formData.timezone}
                     onChange={(e) => handleInputChange('timezone', e.target.value)}
-                    label="Timezone *"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                        bgcolor: 'white',
+                        '& fieldset': { borderColor: '#d1d5db' },
+                        '&:hover fieldset': { borderColor: '#9ca3af' },
+                        '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+                      },
+                      '& .MuiSelect-select': {
+                        py: 1.5,
+                        fontSize: '0.95rem'
+                      }
+                    }}
                   >
                     {timezones.map((tz) => (
                       <MenuItem key={tz.value} value={tz.value}>
@@ -286,15 +353,26 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
               </Grid>
 
               <Grid item xs={12} md={6}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: '#374151' }}>
+                  Language *
+                </Typography>
                 <FormControl fullWidth>
-                  <InputLabel>
-                    <Language sx={{ mr: 1, fontSize: 'small' }} />
-                    Language *
-                  </InputLabel>
                   <Select
                     value={formData.language}
                     onChange={(e) => handleInputChange('language', e.target.value)}
-                    label="Language *"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                        bgcolor: 'white',
+                        '& fieldset': { borderColor: '#d1d5db' },
+                        '&:hover fieldset': { borderColor: '#9ca3af' },
+                        '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+                      },
+                      '& .MuiSelect-select': {
+                        py: 1.5,
+                        fontSize: '0.95rem'
+                      }
+                    }}
                   >
                     {languages.map((lang) => (
                       <MenuItem key={lang.value} value={lang.value}>
@@ -306,26 +384,44 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
               </Grid>
 
               <Grid item xs={12}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: '#374151' }}>
+                  Email Signature
+                </Typography>
                 <TextField
                   fullWidth
                   multiline
                   rows={4}
-                  label="Email Signature"
                   value={formData.signature}
                   onChange={(e) => handleInputChange('signature', e.target.value)}
                   placeholder="Enter agent's email signature..."
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '8px',
+                      bgcolor: 'white',
+                      '& fieldset': { borderColor: '#d1d5db' },
+                      '&:hover fieldset': { borderColor: '#9ca3af' },
+                      '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+                    },
+                    '& .MuiInputBase-input': {
+                      fontSize: '0.95rem'
+                    }
+                  }}
                 />
               </Grid>
             </Grid>
-          </CardContent>
-        </Card>
+          </Box>
+        </Paper>
 
         {/* Permissions & Settings */}
-        <Card elevation={2}>
-          <CardContent sx={{ p: 4 }}>
+        <Paper elevation={0} sx={{ bgcolor: 'white', border: '1px solid #e5e7eb' }}>
+          <Box sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <Settings sx={{ mr: 1, color: 'primary.main' }} />
-              <Typography variant="h5" component="h2" sx={{ fontWeight: 'semibold' }}>
+              <Settings sx={{ mr: 1.5, color: '#6b7280', fontSize: '1.25rem' }} />
+              <Typography variant="h6" component="h2" sx={{ 
+                fontWeight: 600, 
+                color: '#1a1a1a',
+                fontSize: '1.1rem'
+              }}>
                 Permissions & Settings
               </Typography>
             </Box>
@@ -333,34 +429,53 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
             {/* Roles */}
             <Box sx={{ mb: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
                   Roles
                 </Typography>
-                <IconButton size="small" sx={{ ml: 1 }}>
+                <IconButton size="small" sx={{ ml: 1, color: '#9ca3af' }}>
                   <Info fontSize="small" />
                 </IconButton>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography variant="body2" sx={{ color: '#6b7280', mb: 2, fontSize: '0.875rem' }}>
                 Determines the features that an agent can access
               </Typography>
               
               <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                 <Autocomplete
-                  sx={{ minWidth: 300 }}
+                  sx={{ minWidth: 250 }}
                   options={availableRoles}
                   value={currentRole}
                   onChange={(event, newValue) => setCurrentRole(newValue || '')}
                   renderInput={(params) => (
-                    <TextField {...params} label="Select role" size="small" />
+                    <TextField 
+                      {...params} 
+                      placeholder="Select a role..."
+                      size="small"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '8px',
+                          bgcolor: 'white',
+                          '& fieldset': { borderColor: '#d1d5db' },
+                          '&:hover fieldset': { borderColor: '#9ca3af' },
+                          '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+                        }
+                      }}
+                    />
                   )}
                 />
                 <Button 
                   variant="contained"
                   onClick={handleAddRole}
                   disabled={!currentRole.trim()}
-                  startIcon={<Add />}
+                  sx={{ 
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    bgcolor: '#3b82f6',
+                    '&:hover': { bgcolor: '#2563eb' },
+                    '&:disabled': { bgcolor: '#e5e7eb' }
+                  }}
                 >
-                  Add
+                  + Add
                 </Button>
               </Box>
               
@@ -370,32 +485,39 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
                     key={role}
                     label={role}
                     onDelete={() => handleRemoveRole(role)}
-                    color="primary"
-                    variant="outlined"
+                    sx={{ 
+                      borderRadius: '6px',
+                      bgcolor: '#dbeafe',
+                      color: '#1e40af',
+                      '& .MuiChip-deleteIcon': {
+                        color: '#1e40af'
+                      }
+                    }}
                   />
                 ))}
               </Box>
             </Box>
 
-            <Divider sx={{ my: 3 }} />
-
             {/* Ticket Visibility */}
             <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Ticket Visibility Scope
+              <Typography variant="body2" sx={{ mb: 2, fontWeight: 500, color: '#374151' }}>
+                Scope for ticket visibility
               </Typography>
               <FormControl component="fieldset">
                 <RadioGroup
                   value={formData.ticketVisibility}
                   onChange={(e) => handleInputChange('ticketVisibility', e.target.value)}
+                  sx={{ gap: 1 }}
                 >
                   <FormControlLabel
                     value="all"
-                    control={<Radio />}
+                    control={<Radio size="small" />}
                     label={
                       <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>All tickets</Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                          All tickets
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#6b7280' }}>
                           Can view and edit all tickets
                         </Typography>
                       </Box>
@@ -403,11 +525,13 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
                   />
                   <FormControlLabel
                     value="group"
-                    control={<Radio />}
+                    control={<Radio size="small" />}
                     label={
                       <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>Group tickets</Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                          Group tickets
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#6b7280' }}>
                           Can view and edit tickets in their group(s) and assigned tickets
                         </Typography>
                       </Box>
@@ -415,11 +539,13 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
                   />
                   <FormControlLabel
                     value="assigned"
-                    control={<Radio />}
+                    control={<Radio size="small" />}
                     label={
                       <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>Assigned tickets</Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                          Assigned tickets
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#6b7280' }}>
                           Can view and edit only tickets assigned to them
                         </Typography>
                       </Box>
@@ -429,17 +555,12 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
               </FormControl>
             </Box>
 
-            <Divider sx={{ my: 3 }} />
-
             {/* Groups */}
             <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Groups
-                </Typography>
-                <Group sx={{ ml: 1, fontSize: 'small', color: 'text.secondary' }} />
-              </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: '#374151' }}>
+                Groups
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6b7280', mb: 2, fontSize: '0.875rem' }}>
                 Organize agents into groups for better collaboration
               </Typography>
               <Autocomplete
@@ -448,7 +569,19 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
                 value={formData.groups}
                 onChange={(event, newValue) => handleInputChange('groups', newValue)}
                 renderInput={(params) => (
-                  <TextField {...params} placeholder="Choose groups" />
+                  <TextField 
+                    {...params} 
+                    placeholder="Choose groups" 
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                        bgcolor: 'white',
+                        '& fieldset': { borderColor: '#d1d5db' },
+                        '&:hover fieldset': { borderColor: '#9ca3af' },
+                        '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+                      }
+                    }}
+                  />
                 )}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
@@ -457,41 +590,74 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
                       label={option}
                       {...getTagProps({ index })}
                       key={option}
+                      sx={{ 
+                        borderRadius: '6px',
+                        borderColor: '#d1d5db',
+                        color: '#374151'
+                      }}
                     />
                   ))
                 }
               />
+              <Typography variant="caption" sx={{ 
+                color: '#6b7280', 
+                mt: 1, 
+                display: 'block',
+                fontSize: '0.75rem'
+              }}>
+                Hold Ctrl/Cmd to select multiple groups
+              </Typography>
             </Box>
-          </CardContent>
-        </Card>
+          </Box>
+        </Paper>
 
         {/* Error Message */}
         {serverError && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert severity="error" sx={{ borderRadius: '8px' }}>
             {serverError}
           </Alert>
         )}
 
         {/* Action Buttons */}
-        <Paper elevation={1} sx={{ p: 3, mt: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-            <Button
-              variant="outlined"
-              size="large"
-              sx={{ px: 4 }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handleSubmit}
-              sx={{ px: 4 }}
-            >
-              {isEdit ? 'Update Agent' : 'Create Agent'}
-            </Button>
-          </Box>
-        </Paper>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, pt: 2 }}>
+          <Button
+            variant="outlined"
+            size="large"
+            sx={{ 
+              borderRadius: '8px',
+              px: 3,
+              py: 1.5,
+              textTransform: 'none',
+              fontSize: '0.95rem',
+              fontWeight: 500,
+              borderColor: '#d1d5db',
+              color: '#374151',
+              '&:hover': {
+                borderColor: '#9ca3af',
+                bgcolor: '#f9fafb'
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleSubmit}
+            sx={{ 
+              borderRadius: '8px',
+              px: 3,
+              py: 1.5,
+              textTransform: 'none',
+              fontSize: '0.95rem',
+              fontWeight: 500,
+              bgcolor: '#3b82f6',
+              '&:hover': { bgcolor: '#2563eb' }
+            }}
+          >
+            {isEdit ? 'Update Agent' : 'Create Agent'}
+          </Button>
+        </Box>
       </Stack>
     </Box>
   );
