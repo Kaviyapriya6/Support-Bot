@@ -61,8 +61,10 @@ const CompanyContactsList = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch companies: ${response.status}`);
-      }
+  const errorText = await response.text(); // log more details
+  console.error('API error:', response.status, errorText);
+  throw new Error(`Failed to fetch companies: ${response.status}`);
+}
 
       const data = await response.json();
       
