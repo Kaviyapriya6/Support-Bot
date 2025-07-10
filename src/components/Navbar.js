@@ -184,7 +184,7 @@ const handleNewClose = () => setNewMenuAnchor(null);
     <MenuItem onClick={() => { handleNewClose(); router.push('/tickets/create'); }}>
       <ConfirmationNumber fontSize="small" sx={{ mr: 1 }} /> Ticket
     </MenuItem>
-    <MenuItem onClick={handleNewClose}>
+    <MenuItem onClick={() => { handleNewClose(); router.push('/email/create'); }}>
       <Email fontSize="small" sx={{ mr: 1 }} /> Email
     </MenuItem>
     <MenuItem onClick={() => { handleNewClose(); router.push('/contacts/create'); }}>
@@ -193,7 +193,7 @@ const handleNewClose = () => setNewMenuAnchor(null);
     <MenuItem onClick={() => { handleNewClose(); router.push('/company/create'); }}>
       <Business fontSize="small" sx={{ mr: 1 }} /> Company
     </MenuItem>
-    <MenuItem onClick={handleNewClose}>
+    <MenuItem onClick={() => { handleNewClose(); router.push('/agents/create'); }}>
       <PersonOutline fontSize="small" sx={{ mr: 1 }} /> Agent
     </MenuItem>
   </Menu>
