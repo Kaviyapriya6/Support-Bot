@@ -1,4 +1,4 @@
-import { dbConnect } from '../../../lib/company';
+import  dbConnect  from '../../../lib/company';
 import Company from '../../../models/Company';
 
 export async function GET(req, context) {
