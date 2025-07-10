@@ -37,6 +37,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
   const menuItems = [
     { href: '/', icon: <Dashboard />, label: 'Dashboard' },
     { href: '/contacts', icon: <People />, label: 'Contacts' },
+    { href: '/company', icon: <ConfirmationNumber />, label: 'Company' },
     { href: '/tickets', icon: <ConfirmationNumber />, label: 'Tickets' },
     { href: '/reports', icon: <Assessment />, label: 'Reports' },
     { href: '/settings', icon: <Settings />, label: 'Settings' },

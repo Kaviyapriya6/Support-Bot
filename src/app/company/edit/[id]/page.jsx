@@ -1,74 +1,42 @@
 'use client';
-
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import AddCompanyForm from '../../../../components/CompanyForm';
 
-import { getCompanyById, updateCompany } from '../../../lib/company'; // Adjusted function and path names
-import { Box, Alert, Typography } from '@mui/material';
-
-const EditCompanyPage = ({ params }) => {
+export default function EditCompanyPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params?.id;
+
   const [company, setCompany] = useState(null);
-  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const companyData = getCompanyById(params.id);
-    if (companyData) {
-      setCompany(companyData);
-    } else {
-      router.push('/company');
-    }
-  }, [params.id, router]);
+    const fetchCompany = async () => {
+      try {
+        const res = await fetch(`/api/company/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-  const handleSubmit = (formData) => {
-    try {
-      updateCompany(params.id, formData);
-      setNotification({
-        open: true,
-        message: 'Company updated successfully!',
-        severity: 'success'
-      });
-
-      setTimeout(() => {
+        if (!res.ok) throw new Error('Failed to fetch company');
+        const data = await res.json();
+        setCompany(data);
+      } catch (err) {
+        console.error('Error fetching company:', err);
         router.push('/company');
-      }, 1500);
-    } catch (error) {
-      setNotification({
-        open: true,
-        message: 'Failed to update company. Please try again.',
-        severity: 'error'
-      });
-    }
-  };
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!company) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography>Loading...</Typography>
-      </Box>
-    );
-  }
+    if (id) fetchCompany();
+  }, [id]);
 
-  return (
-    <Box sx={{ p: 3 }}>
-      <AddCompanyForm
-        onSubmit={handleSubmit}
-        initialData={company}
-        isEdit={true}
-      />
+  if (loading) return <p>Loading company details…</p>;
+  if (!company) return null;
 
-      {notification.open && (
-        <Alert
-          severity={notification.severity}
-          onClose={() => setNotification({ ...notification, open: false })}
-          sx={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}
-        >
-          {notification.message}
-        </Alert>
-      )}
-    </Box>
-  );
-};
-
-export default EditCompanyPage;
+  return <AddCompanyForm editMode={false} />;
+}

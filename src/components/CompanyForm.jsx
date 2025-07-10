@@ -1,47 +1,12 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Container,
-  Paper,
-  Grid,
-  InputAdornment
-} from '@mui/material';
-import { Search } from '@mui/icons-material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+'use client';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { TextField, Button, CircularProgress, Alert, Box } from '@mui/material';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#f50057',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-  typography: {
-    h5: {
-      fontWeight: 600,
-      color: '#333',
-    },
-  },
-});
-
-export default function AddCompanyForm() {
+export default function AddCompanyForm({ editMode = false, initialData = {} }) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    companyName: 'Ramani Lakshmipriya J',
+    companyName: '',
     fieldView: 'allFields',
     searchField: '',
     description: '',
@@ -53,6 +18,31 @@ export default function AddCompanyForm() {
     industry: ''
   });
 
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success'
+  });
+
+  // Load initial data if in edit mode
+  useEffect(() => {
+    if (editMode && initialData) {
+      setFormData({
+        companyName: initialData.companyName || '',
+        fieldView: initialData.fieldView || 'allFields',
+        searchField: initialData.searchField || '',
+        description: initialData.description || '',
+        notes: initialData.notes || '',
+        domains: initialData.domains || '',
+        healthScore: initialData.healthScore || '',
+        accountTier: initialData.accountTier || '',
+        renewalDate: initialData.renewalDate || '',
+        industry: initialData.industry || ''
+      });
+    }
+  }, [editMode, initialData]);
+
   const handleInputChange = (field) => (event) => {
     setFormData({
       ...formData,
@@ -61,313 +51,671 @@ export default function AddCompanyForm() {
   };
 
   const handleCancel = () => {
-    console.log('Cancel clicked');
+    setFormData({
+      companyName: '',
+      fieldView: 'allFields',
+      searchField: '',
+      description: '',
+      notes: '',
+      domains: '',
+      healthScore: '',
+      accountTier: '',
+      renewalDate: '',
+      industry: ''
+    });
+    showNotification('Form cleared', 'info');
   };
 
-  const handleCreateCompany = () => {
-    console.log('Create company clicked', formData);
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 4000);
+  };
+
+  const validateForm = () => {
+    if (!formData.companyName.trim()) {
+      showNotification('Company name is required', 'error');
+      return false;
+    }
+    return true;
+  };
+
+  const handleCreateCompany = async () => {
+    if (!validateForm()) return;
+    setLoading(true);
+
+    try {
+      const method = editMode ? 'PUT' : 'POST';
+      const url = editMode ? `/api/company/${initialData._id}` : '/api/company';
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!res.ok) throw new Error(`Failed to ${editMode ? 'update' : 'add'} company`);
+      showNotification(`Company ${editMode ? 'updated' : 'added'} successfully`, 'success');
+      router.push('/company');
+    } catch (err) {
+      showNotification(err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+  const today = new Date().toISOString().split('T')[0];
+
+  const SearchIcon = () => (
+    <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+
+  const CalendarIcon = () => (
+    <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+
+  const CheckIcon = () => (
+    <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  );
+
+  const XIcon = () => (
+    <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+
+  const AlertIcon = () => (
+    <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+    </svg>
+  );
+
+  const NotificationIcon = ({ type }) => {
+    const iconStyle = { color: type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6' };
+    switch (type) {
+      case 'success':
+        return <div style={iconStyle}><CheckIcon /></div>;
+      case 'error':
+        return <div style={iconStyle}><XIcon /></div>;
+      case 'info':
+        return <div style={iconStyle}><AlertIcon /></div>;
+      default:
+        return <div style={iconStyle}><CheckIcon /></div>;
+    }
+  };
+
+  const styles = {
+    container: {
+      minHeight: '100vh',
+      backgroundColor: '#f9fafb',
+      padding: '32px 16px',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
+    },
+    formWrapper: {
+      maxWidth: '768px',
+      margin: '0 auto'
+    },
+    formCard: {
+      backgroundColor: '#ffffff',
+      borderRadius: '8px',
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      padding: '32px'
+    },
+    title: {
+      fontSize: '24px',
+      fontWeight: 600,
+      color: '#1f2937',
+      marginBottom: '24px',
+      margin: '0 0 24px 0'
+    },
+    fieldGroup: {
+      marginBottom: '24px'
+    },
+    mandatoryText: {
+      fontSize: '14px',
+      color: '#6b7280',
+      marginBottom: '8px'
+    },
+    label: {
+      display: 'block',
+      fontSize: '14px',
+      fontWeight: 500,
+      color: '#374151',
+      marginBottom: '8px'
+    },
+    input: {
+      width: '100%',
+      padding: '12px 16px',
+      border: '1px solid #d1d5db',
+      borderRadius: '6px',
+      fontSize: '14px',
+      transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+      boxSizing: 'border-box'
+    },
+    inputFocus: {
+      outline: 'none',
+      borderColor: '#3b82f6',
+      boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)'
+    },
+    mandatoryInput: {
+      backgroundColor: '#eff6ff',
+      borderColor: '#10b981'
+    },
+    errorInput: {
+      borderColor: '#ef4444'
+    },
+    errorText: {
+      marginTop: '4px',
+      fontSize: '14px',
+      color: '#ef4444'
+    },
+    radioGroup: {
+      display: 'flex',
+      gap: '24px',
+      marginBottom: '24px'
+    },
+    radioLabel: {
+      display: 'flex',
+      alignItems: 'center',
+      cursor: 'pointer'
+    },
+    radioInput: {
+      marginRight: '8px',
+      accentColor: '#3b82f6'
+    },
+    radioText: {
+      fontSize: '14px',
+      color: '#374151'
+    },
+    searchContainer: {
+      position: 'relative',
+      marginBottom: '24px'
+    },
+    searchIcon: {
+      position: 'absolute',
+      left: '12px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      color: '#9ca3af'
+    },
+    searchInput: {
+      width: '100%',
+      paddingLeft: '40px',
+      paddingRight: '16px',
+      paddingTop: '8px',
+      paddingBottom: '8px',
+      border: '1px solid #d1d5db',
+      borderRadius: '6px',
+      fontSize: '14px',
+      boxSizing: 'border-box'
+    },
+    textarea: {
+      width: '100%',
+      padding: '12px 16px',
+      border: '1px solid #d1d5db',
+      borderRadius: '6px',
+      fontSize: '14px',
+      resize: 'vertical',
+      fontFamily: 'inherit',
+      boxSizing: 'border-box'
+    },
+    select: {
+      width: '100%',
+      padding: '12px 16px',
+      border: '1px solid #d1d5db',
+      borderRadius: '6px',
+      fontSize: '14px',
+      backgroundColor: '#ffffff',
+      cursor: 'pointer',
+      boxSizing: 'border-box'
+    },
+    dateContainer: {
+      position: 'relative'
+    },
+    dateIcon: {
+      position: 'absolute',
+      left: '12px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      color: '#9ca3af'
+    },
+    dateInput: {
+      width: '100%',
+      paddingLeft: '40px',
+      paddingRight: '16px',
+      paddingTop: '12px',
+      paddingBottom: '12px',
+      border: '1px solid #d1d5db',
+      borderRadius: '6px',
+      fontSize: '14px',
+      boxSizing: 'border-box'
+    },
+    buttonContainer: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: '16px',
+      marginTop: '32px'
+    },
+    cancelButton: {
+      padding: '12px 24px',
+      border: '1px solid #d1d5db',
+      backgroundColor: '#ffffff',
+      color: '#374151',
+      borderRadius: '6px',
+      fontSize: '14px',
+      cursor: 'pointer',
+      transition: 'background-color 0.2s ease'
+    },
+    cancelButtonHover: {
+      backgroundColor: '#f9fafb'
+    },
+    cancelButtonDisabled: {
+      opacity: 0.5,
+      cursor: 'not-allowed'
+    },
+    createButton: {
+      padding: '12px 24px',
+      backgroundColor: '#1f2937',
+      color: '#ffffff',
+      border: 'none',
+      borderRadius: '6px',
+      fontSize: '14px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      transition: 'background-color 0.2s ease'
+    },
+    createButtonHover: {
+      backgroundColor: '#111827'
+    },
+    createButtonDisabled: {
+      opacity: 0.5,
+      cursor: 'not-allowed'
+    },
+    spinner: {
+      width: '20px',
+      height: '20px',
+      border: '2px solid transparent',
+      borderTop: '2px solid #ffffff',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite',
+      marginRight: '8px'
+    },
+    notification: {
+      position: 'fixed',
+      top: '16px',
+      right: '16px',
+      zIndex: 1000,
+      maxWidth: '384px',
+      padding: '16px',
+      borderRadius: '6px',
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
+    },
+    notificationSuccess: {
+      backgroundColor: '#f0fdf4',
+      border: '1px solid #bbf7d0'
+    },
+    notificationError: {
+      backgroundColor: '#fef2f2',
+      border: '1px solid #fecaca'
+    },
+    notificationInfo: {
+      backgroundColor: '#eff6ff',
+      border: '1px solid #bfdbfe'
+    },
+    notificationText: {
+      fontSize: '14px',
+      fontWeight: 500,
+      flex: 1
+    },
+    notificationTextSuccess: {
+      color: '#166534'
+    },
+    notificationTextError: {
+      color: '#991b1b'
+    },
+    notificationTextInfo: {
+      color: '#1e40af'
+    },
+    closeButton: {
+      color: '#9ca3af',
+      cursor: 'pointer',
+      backgroundColor: 'transparent',
+      border: 'none',
+      padding: '4px',
+      borderRadius: '4px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Paper elevation={2} sx={{ p: 4, backgroundColor: '#ffffff' }}>
-          <Typography variant="h5" gutterBottom sx={{ mb: 3, color: '#2c3e50' }}>
-            Add Company
-          </Typography>
+    <>
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
           
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={{ color: '#7f8c8d', mb: 1 }}>
-              This field is mandatory
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-              Company Name*
-            </Typography>
-            <TextField
-              fullWidth
-              value={formData.companyName}
-              onChange={handleInputChange('companyName')}
-              variant="outlined"
-              sx={{ 
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#e8f4fd',
-                  '& fieldset': {
-                    borderColor: '#d1e7dd',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#1976d2',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#1976d2',
-                  },
-                },
-              }}
-            />
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <RadioGroup
-              row
-              value={formData.fieldView}
-              onChange={handleInputChange('fieldView')}
-              sx={{ mb: 2 }}
-            >
-              <FormControlLabel 
-                value="mandatoryFields" 
-                control={<Radio size="small" />} 
-                label="Mandatory fields" 
-                sx={{ mr: 3 }}
-              />
-              <FormControlLabel 
-                value="allFields" 
-                control={<Radio size="small" />} 
-                label="All fields"
-              />
-            </RadioGroup>
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <TextField
-              fullWidth
-              placeholder="Search for a field"
-              value={formData.searchField}
-              onChange={handleInputChange('searchField')}
-              variant="outlined"
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search sx={{ color: '#666' }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#ffffff',
-                  '& fieldset': {
-                    borderColor: '#e0e0e0',
-                  },
-                },
-              }}
-            />
-          </Box>
-
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                Description
-              </Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                placeholder="Enter some text"
-                value={formData.description}
-                onChange={handleInputChange('description')}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#ffffff',
-                    '& fieldset': {
-                      borderColor: '#e0e0e0',
-                    },
-                  },
+          .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          }
+          
+          .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          }
+          
+          .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          }
+          
+          .cancel-button:hover:not(:disabled) {
+            background-color: #f9fafb;
+          }
+          
+          .create-button:hover:not(:disabled) {
+            background-color: #111827;
+          }
+          
+          .close-button:hover {
+            color: #4b5563;
+          }
+        `}
+      </style>
+      
+      <div style={styles.container}>
+        <div style={styles.formWrapper}>
+          <div style={styles.formCard}>
+            <h1 style={styles.title}>
+              Add Company
+            </h1>
+            
+            {/* Company Name - Mandatory Field */}
+            <div style={styles.fieldGroup}>
+              <p style={styles.mandatoryText}>
+                This field is mandatory
+              </p>
+              <label style={styles.label}>
+                Company Name*
+              </label>
+              <input
+                type="text"
+                value={formData.companyName}
+                onChange={handleInputChange('companyName')}
+                required
+                className="form-input"
+                style={{
+                  ...styles.input,
+                  ...(formData.companyName.trim() ? styles.mandatoryInput : {}),
+                  ...(!formData.companyName.trim() && formData.companyName !== '' ? styles.errorInput : {})
                 }}
+                placeholder="Enter company name"
               />
-            </Grid>
+              {!formData.companyName.trim() && formData.companyName !== '' && (
+                <p style={styles.errorText}>Company name is required</p>
+              )}
+            </div>
 
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                Notes
-              </Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                placeholder="Enter some text"
-                value={formData.notes}
-                onChange={handleInputChange('notes')}
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#ffffff',
-                    '& fieldset': {
-                      borderColor: '#e0e0e0',
-                    },
-                  },
-                }}
+            {/* Field View Radio Buttons */}
+            <div style={styles.radioGroup}>
+              <label style={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="fieldView"
+                  value="mandatoryFields"
+                  checked={formData.fieldView === 'mandatoryFields'}
+                  onChange={handleInputChange('fieldView')}
+                  style={styles.radioInput}
+                />
+                <span style={styles.radioText}>Mandatory fields</span>
+              </label>
+              <label style={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="fieldView"
+                  value="allFields"
+                  checked={formData.fieldView === 'allFields'}
+                  onChange={handleInputChange('fieldView')}
+                  style={styles.radioInput}
+                />
+                <span style={styles.radioText}>All fields</span>
+              </label>
+            </div>
+
+            {/* Search Field */}
+            <div style={styles.searchContainer}>
+              <div style={styles.searchIcon}>
+                <SearchIcon />
+              </div>
+              <input
+                type="text"
+                placeholder="Search for a field"
+                value={formData.searchField}
+                onChange={handleInputChange('searchField')}
+                className="form-input"
+                style={styles.searchInput}
               />
-            </Grid>
+            </div>
 
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                Domains for this company
-              </Typography>
-              <FormControl fullWidth variant="outlined">
-                <Select
+            {/* Form Fields */}
+            <div>
+              {/* Description */}
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Enter company description"
+                  value={formData.description}
+                  onChange={handleInputChange('description')}
+                  className="form-textarea"
+                  style={styles.textarea}
+                />
+              </div>
+
+              {/* Notes */}
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>
+                  Notes
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Enter additional notes"
+                  value={formData.notes}
+                  onChange={handleInputChange('notes')}
+                  className="form-textarea"
+                  style={styles.textarea}
+                />
+              </div>
+
+              {/* Domains */}
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>
+                  Domains for this company
+                </label>
+                <select
                   value={formData.domains}
                   onChange={handleInputChange('domains')}
-                  displayEmpty
-                  sx={{
-                    backgroundColor: '#ffffff',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#e0e0e0',
-                    },
-                  }}
+                  className="form-select"
+                  style={styles.select}
                 >
-                  <MenuItem value="">
-                    <em style={{ color: '#999' }}>Your choice</em>
-                  </MenuItem>
-                  <MenuItem value="technology">Technology</MenuItem>
-                  <MenuItem value="healthcare">Healthcare</MenuItem>
-                  <MenuItem value="finance">Finance</MenuItem>
-                  <MenuItem value="retail">Retail</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+                  <option value="">Select domain</option>
+                  <option value="technology">Technology</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="finance">Finance</option>
+                  <option value="retail">Retail</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="education">Education</option>
+                </select>
+              </div>
 
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                Health Score
-              </Typography>
-              <FormControl fullWidth variant="outlined">
-                <Select
+              {/* Health Score */}
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>
+                  Health Score
+                </label>
+                <select
                   value={formData.healthScore}
                   onChange={handleInputChange('healthScore')}
-                  displayEmpty
-                  sx={{
-                    backgroundColor: '#ffffff',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#e0e0e0',
-                    },
-                  }}
+                  className="form-select"
+                  style={styles.select}
                 >
-                  <MenuItem value="">
-                    <em style={{ color: '#999' }}>Your choice</em>
-                  </MenuItem>
-                  <MenuItem value="excellent">Excellent</MenuItem>
-                  <MenuItem value="good">Good</MenuItem>
-                  <MenuItem value="average">Average</MenuItem>
-                  <MenuItem value="poor">Poor</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+                  <option value="">Select health score</option>
+                  <option value="excellent">Excellent (90-100)</option>
+                  <option value="good">Good (70-89)</option>
+                  <option value="average">Average (50-69)</option>
+                  <option value="poor">Poor (0-49)</option>
+                </select>
+              </div>
 
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                Account Tier
-              </Typography>
-              <FormControl fullWidth variant="outlined">
-                <Select
+              {/* Account Tier */}
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>
+                  Account Tier
+                </label>
+                <select
                   value={formData.accountTier}
                   onChange={handleInputChange('accountTier')}
-                  displayEmpty
-                  sx={{
-                    backgroundColor: '#ffffff',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#e0e0e0',
-                    },
-                  }}
+                  className="form-select"
+                  style={styles.select}
                 >
-                  <MenuItem value="">
-                    <em style={{ color: '#999' }}>Your choice</em>
-                  </MenuItem>
-                  <MenuItem value="enterprise">Enterprise</MenuItem>
-                  <MenuItem value="professional">Professional</MenuItem>
-                  <MenuItem value="standard">Standard</MenuItem>
-                  <MenuItem value="basic">Basic</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+                  <option value="">Select account tier</option>
+                  <option value="enterprise">Enterprise</option>
+                  <option value="professional">Professional</option>
+                  <option value="standard">Standard</option>
+                  <option value="basic">Basic</option>
+                </select>
+              </div>
 
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                Renewal Date
-              </Typography>
-              <FormControl fullWidth variant="outlined">
-                <Select
-                  value={formData.renewalDate}
-                  onChange={handleInputChange('renewalDate')}
-                  displayEmpty
-                  sx={{
-                    backgroundColor: '#ffffff',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#e0e0e0',
-                    },
-                  }}
-                >
-                  <MenuItem value="">
-                    <em style={{ color: '#999' }}>Your choice</em>
-                  </MenuItem>
-                  <MenuItem value="2024-01-01">January 1, 2024</MenuItem>
-                  <MenuItem value="2024-06-01">June 1, 2024</MenuItem>
-                  <MenuItem value="2024-12-01">December 1, 2024</MenuItem>
-                  <MenuItem value="2025-01-01">January 1, 2025</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+              {/* Renewal Date with Calendar */}
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>
+                  Renewal Date
+                </label>
+                <div style={styles.dateContainer}>
+                  <div style={styles.dateIcon}>
+                    <CalendarIcon />
+                  </div>
+                  <input
+                    type="date"
+                    value={formData.renewalDate}
+                    onChange={handleInputChange('renewalDate')}
+                    min={today}
+                    className="form-input"
+                    style={styles.dateInput}
+                  />
+                </div>
+              </div>
 
-            <Grid item xs={12}>
-              <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                Industry
-              </Typography>
-              <FormControl fullWidth variant="outlined">
-                <Select
+              {/* Industry */}
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>
+                  Industry
+                </label>
+                <select
                   value={formData.industry}
                   onChange={handleInputChange('industry')}
-                  displayEmpty
-                  sx={{
-                    backgroundColor: '#ffffff',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#e0e0e0',
-                    },
-                  }}
+                  className="form-select"
+                  style={styles.select}
                 >
-                  <MenuItem value="">
-                    <em style={{ color: '#999' }}>Your choice</em>
-                  </MenuItem>
-                  <MenuItem value="technology">Technology</MenuItem>
-                  <MenuItem value="healthcare">Healthcare</MenuItem>
-                  <MenuItem value="finance">Finance</MenuItem>
-                  <MenuItem value="manufacturing">Manufacturing</MenuItem>
-                  <MenuItem value="retail">Retail</MenuItem>
-                  <MenuItem value="education">Education</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+                  <option value="">Select industry</option>
+                  <option value="technology">Technology</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="finance">Finance</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="retail">Retail</option>
+                  <option value="education">Education</option>
+                  <option value="consulting">Consulting</option>
+                  <option value="real-estate">Real Estate</option>
+                </select>
+              </div>
+            </div>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
-            <Button
-              variant="outlined"
-              onClick={handleCancel}
-              sx={{
-                borderColor: '#d1d5db',
-                color: '#6b7280',
-                '&:hover': {
-                  borderColor: '#9ca3af',
-                  backgroundColor: '#f9fafb',
-                },
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleCreateCompany}
-              sx={{
-                backgroundColor: '#1f2937',
-                color: '#ffffff',
-                '&:hover': {
-                  backgroundColor: '#111827',
-                },
-              }}
-            >
-              Create company
-            </Button>
-          </Box>
-        </Paper>
-      </Container>
-    </ThemeProvider>
+            {/* Action Buttons */}
+            <div style={styles.buttonContainer}>
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={loading}
+                className="cancel-button"
+                style={{
+                  ...styles.cancelButton,
+                  ...(loading ? styles.cancelButtonDisabled : {})
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateCompany}
+                disabled={loading || !formData.companyName.trim()}
+                className="create-button"
+                style={{
+                  ...styles.createButton,
+                  ...(loading || !formData.companyName.trim() ? styles.createButtonDisabled : {})
+                }}
+              >
+                {loading ? (
+                  <>
+                    <div style={styles.spinner}></div>
+                    Creating...
+                  </>
+                ) : (
+                  'Create company'
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Notification Toast */}
+          {notification.show && (
+            <div style={{
+              ...styles.notification,
+              ...(notification.type === 'success' ? styles.notificationSuccess :
+                  notification.type === 'error' ? styles.notificationError :
+                  styles.notificationInfo)
+            }}>
+              <NotificationIcon type={notification.type} />
+              <p style={{
+                ...styles.notificationText,
+                ...(notification.type === 'success' ? styles.notificationTextSuccess :
+                    notification.type === 'error' ? styles.notificationTextError :
+                    styles.notificationTextInfo)
+              }}>
+                {notification.message}
+              </p>
+              <button
+                onClick={() => setNotification({ show: false, message: '', type: 'success' })}
+                className="close-button"
+                style={styles.closeButton}
+              >
+                <XIcon />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

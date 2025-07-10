@@ -1,33 +1,53 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import AddCompanyForm from '../../../components/CompanyForm'; // Adjust the import path if needed
-import { addCompany } from '../../lib/company'; // Updated path and function name
+import AddCompanyForm from '../../../components/CompanyForm';
 import { Box, Alert } from '@mui/material';
 import { useState } from 'react';
 
 const CreateCompanyPage = () => {
   const router = useRouter();
-  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+  const [notification, setNotification] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
-  const handleSubmit = (formData) => {
+  const addCompany = async (formData) => {
+    const res = await fetch('/api/company', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Failed to create company');
+    }
+
+    return await res.json();
+  };
+
+  const handleSubmit = async (formData) => {
     try {
-      addCompany(formData);
+      await addCompany(formData);
       setNotification({
         open: true,
         message: 'Company created successfully!',
-        severity: 'success'
+        severity: 'success',
       });
 
-      // Redirect after a short delay to show the notification
       setTimeout(() => {
         router.push('/company');
       }, 1500);
     } catch (error) {
       setNotification({
         open: true,
-        message: 'Failed to create company. Please try again.',
-        severity: 'error'
+        message: error.message || 'Failed to create company. Please try again.',
+        severity: 'error',
       });
     }
   };
