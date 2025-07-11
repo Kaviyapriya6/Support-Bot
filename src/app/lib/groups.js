@@ -1,6 +1,7 @@
 
 import mongoose from 'mongoose';
 import Group from '../models/groups';
+import Agent from '../models/agent';
 import { dbConnect } from './mongodb';
 
 // Get all groups
@@ -8,7 +9,22 @@ export const getGroups = async () => {
   try {
     await dbConnect();
     const groups = await Group.find({}).sort({ createdAt: -1 });
-    return groups;
+    
+    // Calculate active agents for each group
+    const groupsWithAgentCount = await Promise.all(
+      groups.map(async (group) => {
+        const agentCount = await Agent.countDocuments({
+          groups: group.name
+        });
+        
+        return {
+          ...group.toObject(),
+          activeAgents: agentCount
+        };
+      })
+    );
+    
+    return groupsWithAgentCount;
   } catch (error) {
     console.error('Error fetching groups:', error);
     throw error;

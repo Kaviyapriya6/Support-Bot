@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, TextField, Button, Typography, Avatar, Paper, Grid, Alert, MenuItem,
   FormControl, InputLabel, Select, IconButton, Chip
 } from '@mui/material';
-import { PhotoCamera, Delete } from '@mui/icons-material';
+import { PhotoCamera, Delete, Add } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -15,6 +15,70 @@ const ContactForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
   const [imagePreview, setImagePreview] = useState(initialData.profileImage || null);
   const [currentTag, setCurrentTag] = useState('');
   const [serverError, setServerError] = useState('');
+  const [companies, setCompanies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
+  const [selectedCompany, setSelectedCompany] = useState(initialData.company || '');
+
+  // Fetch companies from API
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        setLoadingCompanies(true);
+        const response = await fetch('/api/company');
+        if (response.ok) {
+          const data = await response.json();
+          const companiesData = data.success ? data.data : data;
+          setCompanies(companiesData || []);
+        } else {
+          setCompanies([]);
+        }
+      } catch (error) {
+        console.error('Error fetching companies:', error);
+        setCompanies([]);
+      } finally {
+        setLoadingCompanies(false);
+      }
+    };
+
+    fetchCompanies();
+  }, []);
+
+  // Check for newly created company from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const newCompanyId = urlParams.get('companyId');
+    const newCompanyName = urlParams.get('companyName');
+    
+    if (newCompanyId && newCompanyName) {
+      // Add the new company to the list if it's not already there
+      setCompanies(prev => {
+        const exists = prev.some(company => company._id === newCompanyId);
+        if (!exists) {
+          return [...prev, { _id: newCompanyId, name: newCompanyName }];
+        }
+        return prev;
+      });
+      
+      // Set the selected company
+      setSelectedCompany(newCompanyName);
+      
+      // Clear URL params
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
+
+  const handleCreateNewCompany = () => {
+    // Store current form data in sessionStorage before navigation
+    const currentPath = window.location.pathname;
+    const isEditMode = currentPath.includes('/edit/');
+    const contactId = isEditMode ? currentPath.split('/').pop() : null;
+    
+    // Navigate to company creation with return URL
+    const returnUrl = encodeURIComponent(window.location.pathname);
+    console.log('Navigating to company creation with returnUrl:', returnUrl);
+    router.push(`/company/create?returnUrl=${returnUrl}&mode=contact&contactId=${contactId || ''}`);
+  };
 
   const timezones = [
     'UTC-12:00', 'UTC-11:00', 'UTC-10:00', 'UTC-09:00', 'UTC-08:00',
@@ -71,10 +135,11 @@ const ContactForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
       </Typography>
 
       <Formik
+        enableReinitialize={true}
         initialValues={{
           name: initialData.name || '',
           title: initialData.title || '',
-          company: initialData.company || '',
+          company: selectedCompany || initialData.company || '',
           email: initialData.email || '',
           phone: initialData.phone || '',
           workPhone: initialData.workPhone || '',
@@ -124,7 +189,7 @@ const ContactForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
             </Box>
 
             <Grid container spacing={3}>
-              {['name', 'title', 'company', 'email', 'phone', 'workPhone', 'twitter', 'facebook'].map((field) => (
+              {['name', 'title', 'email', 'phone', 'workPhone', 'twitter', 'facebook'].map((field) => (
                 <Grid item xs={12} md={6} key={field}>
                   <Field
                     as={TextField}
@@ -135,6 +200,47 @@ const ContactForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
                   />
                 </Grid>
               ))}
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Company</InputLabel>
+                  <Select
+                    name="company"
+                    value={values.company}
+                    onChange={(e) => {
+                      if (e.target.value === 'CREATE_NEW') {
+                        handleCreateNewCompany();
+                      } else {
+                        setFieldValue('company', e.target.value);
+                      }
+                    }}
+                    disabled={loadingCompanies}
+                  >
+                    <MenuItem value="">
+                      <em>No company selected</em>
+                    </MenuItem>
+                    <MenuItem value="CREATE_NEW" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                      <Add sx={{ mr: 1, fontSize: '1rem' }} />
+                      + Create New Company
+                    </MenuItem>
+                    {companies.map((company) => (
+                      <MenuItem key={company._id} value={company.name}>
+                        {company.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {loadingCompanies && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                      Loading companies...
+                    </Typography>
+                  )}
+                  {!loadingCompanies && companies.length === 0 && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                      No companies available. Create companies first.
+                    </Typography>
+                  )}
+                </FormControl>
+              </Grid>
 
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>

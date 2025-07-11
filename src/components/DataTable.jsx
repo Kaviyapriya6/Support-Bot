@@ -58,6 +58,11 @@ export default function DataTable({
   const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null });
   const [deleting, setDeleting] = useState(false);
 
+  // Helper function to get nested object values
+  const getNestedValue = (obj, path) => {
+    return path.split('.').reduce((value, key) => value?.[key], obj);
+  };
+
   // Filter and search data
   const filteredData = useMemo(() => {
     let result = data;
@@ -84,11 +89,6 @@ export default function DataTable({
 
     return result;
   }, [data, searchTerm, filters, searchFields]);
-
-  // Helper function to get nested object values
-  const getNestedValue = (obj, path) => {
-    return path.split('.').reduce((value, key) => value?.[key], obj);
-  };
 
   // Render cell content based on column configuration
   const renderCellContent = (item, column) => {
