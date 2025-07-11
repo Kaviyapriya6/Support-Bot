@@ -1,4 +1,4 @@
-import { dbConnect } from '../../../lib/Company';
+import  dbConnect  from '../../../lib/company';
 import Company from '../../../models/Company';
 
 export async function GET(req, context) {
@@ -32,10 +32,12 @@ export async function PUT(req, context) {
   return Response.json(updatedCompany);
 }
 
-export async function DELETE(req, { params }) {
+export async function DELETE(req, context) {
   await dbConnect();
+  const { params } = context;
+  const resolvedParams = await params;
 
-  const deletedCompany = await Company.findByIdAndDelete(params.id);
+  const deletedCompany = await Company.findByIdAndDelete(resolvedParams.id);
 
   if (!deletedCompany) {
     return Response.json({ message: 'Company not found' }, { status: 404 });
