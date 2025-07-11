@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Box, TextField, Button, Typography, Avatar, Paper, Grid, Alert, MenuItem,
   FormControl, InputLabel, Select, IconButton, Chip, RadioGroup, FormControlLabel,
@@ -18,9 +19,12 @@ import {
 } from '@mui/icons-material';
 
 const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
+  const router = useRouter();
   const [imagePreview, setImagePreview] = useState(initialData.profileImage || null);
   const [currentRole, setCurrentRole] = useState('');
   const [serverError, setServerError] = useState('');
+  const [availableGroups, setAvailableGroups] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(true);
   const [formData, setFormData] = useState({
     agentType: initialData.agentType || 'support',
     workType: initialData.workType || 'fulltime',
@@ -31,7 +35,7 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
     signature: initialData.signature || '',
     roles: initialData.roles || ['Agent'],
     ticketVisibility: initialData.ticketVisibility || 'all',
-    groups: initialData.groups || [],
+    group: initialData.groups && initialData.groups.length > 0 ? initialData.groups[0] : '',
   });
 
   const agentTypes = [
@@ -66,10 +70,29 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
     'Customer Success', 'Technical Support', 'Billing Support'
   ];
 
-  const availableGroups = [
-    'Support Team', 'Sales Team', 'Technical Team', 
-    'Management', 'Customer Success', 'Billing Team'
-  ];
+  // Fetch groups from API
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        setLoadingGroups(true);
+        const response = await fetch('/api/groups');
+        if (response.ok) {
+          const data = await response.json();
+          const groups = data.success ? data.data : data;
+          setAvailableGroups(groups.map(group => group.name));
+        } else {
+          setAvailableGroups([]);
+        }
+      } catch (error) {
+        console.error('Error fetching groups:', error);
+        setAvailableGroups([]);
+      } finally {
+        setLoadingGroups(false);
+      }
+    };
+
+    fetchGroups();
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -108,7 +131,15 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
   const handleSubmit = async () => {
     setServerError('');
     try {
-      await onSubmit(formData);
+      // Convert single group to groups array for API compatibility
+      const submitData = {
+        ...formData,
+        groups: formData.group ? [formData.group] : []
+      };
+      // Remove the single group field since API expects groups array
+      delete submitData.group;
+      
+      await onSubmit(submitData);
     } catch (err) {
       setServerError(err.message || 'Something went wrong.');
     }
@@ -557,56 +588,75 @@ const AgentForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
 
             {/* Groups */}
             <Box>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: '#374151' }}>
-                Groups
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
+                  Group
+                </Typography>
+              </Box>
               <Typography variant="body2" sx={{ color: '#6b7280', mb: 2, fontSize: '0.875rem' }}>
-                Organize agents into groups for better collaboration
+                Assign agent to a group for better collaboration
               </Typography>
-              <Autocomplete
-                multiple
-                options={availableGroups}
-                value={formData.groups}
-                onChange={(event, newValue) => handleInputChange('groups', newValue)}
-                renderInput={(params) => (
-                  <TextField 
-                    {...params} 
-                    placeholder="Choose groups" 
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        bgcolor: 'white',
-                        '& fieldset': { borderColor: '#d1d5db' },
-                        '&:hover fieldset': { borderColor: '#9ca3af' },
-                        '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                      }
-                    }}
-                  />
-                )}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      variant="outlined"
-                      label={option}
-                      {...getTagProps({ index })}
-                      key={option}
-                      sx={{ 
-                        borderRadius: '6px',
-                        borderColor: '#d1d5db',
-                        color: '#374151'
+              
+              {loadingGroups ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', py: 2 }}>
+                  <Typography variant="body2" sx={{ color: '#6b7280' }}>
+                    Loading groups...
+                  </Typography>
+                </Box>
+              ) : availableGroups.length === 0 ? (
+                <Box sx={{ 
+                  border: '2px dashed #d1d5db', 
+                  borderRadius: '8px', 
+                  p: 3, 
+                  textAlign: 'center',
+                  bgcolor: '#f9fafb'
+                }}>
+                  <Group sx={{ fontSize: 40, color: '#9ca3af', mb: 1 }} />
+                  <Typography variant="body2" sx={{ color: '#6b7280' }}>
+                    No groups available. Create groups from the Groups section to organize agents.
+                  </Typography>
+                </Box>
+              ) : (
+                <>
+                  <FormControl fullWidth>
+                    <Select
+                      value={formData.group}
+                      onChange={(e) => handleInputChange('group', e.target.value)}
+                      displayEmpty
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '8px',
+                          bgcolor: 'white',
+                          '& fieldset': { borderColor: '#d1d5db' },
+                          '&:hover fieldset': { borderColor: '#9ca3af' },
+                          '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+                        },
+                        '& .MuiSelect-select': {
+                          py: 1.5,
+                          fontSize: '0.95rem'
+                        }
                       }}
-                    />
-                  ))
-                }
-              />
-              <Typography variant="caption" sx={{ 
-                color: '#6b7280', 
-                mt: 1, 
-                display: 'block',
-                fontSize: '0.75rem'
-              }}>
-                Hold Ctrl/Cmd to select multiple groups
-              </Typography>
+                    >
+                      <MenuItem value="">
+                        <em>No group assigned</em>
+                      </MenuItem>
+                      {availableGroups.map((group) => (
+                        <MenuItem key={group} value={group}>
+                          {group}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Typography variant="caption" sx={{ 
+                    color: '#6b7280', 
+                    mt: 1, 
+                    display: 'block',
+                    fontSize: '0.75rem'
+                  }}>
+                    Select a group to assign this agent to
+                  </Typography>
+                </>
+              )}
             </Box>
           </Box>
         </Paper>

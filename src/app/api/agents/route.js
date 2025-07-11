@@ -11,6 +11,7 @@ export async function POST(req) {
   try {
     await connectDB();
     const body = await req.json();
+    console.log(body) 
     const agent = await Agent.create(body);
     return Response.json(agent, { status: 201 });
   } catch (err) {
