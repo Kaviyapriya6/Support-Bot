@@ -451,7 +451,7 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
         <div style={styles.formWrapper}>
           <div style={styles.formCard}>
             <h1 style={styles.title}>
-              Add Company
+              Create New Company
             </h1>
             
             {/* Company Name - Mandatory Field */}
