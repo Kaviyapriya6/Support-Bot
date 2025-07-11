@@ -65,7 +65,7 @@ const ContactForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: 'auto' }}>
+    <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: 'auto',fontweight: 'bold' }}>
       <Typography variant="h4" gutterBottom>
         {isEdit ? 'Edit Contact' : 'Create New Contact'}
       </Typography>
