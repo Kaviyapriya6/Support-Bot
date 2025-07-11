@@ -15,16 +15,23 @@ import {
   Paper,
   Avatar,
   Chip,
-  Alert
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { Edit as EditIcon, Add as AddIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 
 export default function AgentListPage() {
   const router = useRouter();
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, agent: null });
+  const [deleting, setDeleting] = useState(false);
 
   const fetchAgents = async () => {
     try {
@@ -43,6 +50,36 @@ export default function AgentListPage() {
   useEffect(() => {
     fetchAgents();
   }, []);
+
+  const handleDeleteClick = (agent) => {
+    setDeleteDialog({ open: true, agent });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.agent) return;
+    
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/agents/${deleteDialog.agent._id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) throw new Error('Failed to delete agent');
+      
+      // Remove the deleted agent from the list
+      setAgents(agents.filter(agent => agent._id !== deleteDialog.agent._id));
+      setDeleteDialog({ open: false, agent: null });
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ open: false, agent: null });
+  };
 
   return (
     <Box sx={{ p: 4 }}>
@@ -109,14 +146,25 @@ export default function AgentListPage() {
                     ))}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<EditIcon />}
-                      onClick={() => router.push(`/agents/edit/${agent._id}`)}
-                    >
-                      Edit
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<EditIcon />}
+                        onClick={() => router.push(`/agents/edit/${agent._id}`)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => handleDeleteClick(agent)}
+                      >
+                        Delete
+                      </Button>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))}
@@ -131,6 +179,37 @@ export default function AgentListPage() {
           </Table>
         </TableContainer>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            Are you sure you want to delete agent "{deleteDialog.agent?.email}"? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            variant="contained"
+            disabled={deleting}
+            startIcon={deleting ? <CircularProgress size={16} /> : <DeleteIcon />}
+          >
+            {deleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
