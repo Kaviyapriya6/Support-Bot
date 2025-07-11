@@ -1,12 +1,21 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AddCompanyForm from '../../../components/CompanyForm';
 import { Box, Alert } from '@mui/material';
 import { useState } from 'react';
 
 const CreateCompanyPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl');
+  const mode = searchParams.get('mode');
+  const contactId = searchParams.get('contactId');
+  
+  console.log('Company create page - returnUrl:', returnUrl);
+  console.log('Company create page - mode:', mode);
+  console.log('Company create page - contactId:', contactId);
+  
   const [notification, setNotification] = useState({
     open: false,
     message: '',
@@ -33,7 +42,10 @@ const CreateCompanyPage = () => {
 
   const handleSubmit = async (formData) => {
     try {
-      await addCompany(formData);
+      const result = await addCompany(formData);
+      console.log('Company created successfully:', result);
+      console.log('Will redirect with returnUrl:', returnUrl);
+      
       setNotification({
         open: true,
         message: 'Company created successfully!',
@@ -41,7 +53,18 @@ const CreateCompanyPage = () => {
       });
 
       setTimeout(() => {
-        router.push('/company');
+        if (returnUrl) {
+          // If there's a return URL, redirect back with company info
+          const decodedReturnUrl = decodeURIComponent(returnUrl);
+          const separator = decodedReturnUrl.includes('?') ? '&' : '?';
+          const redirectUrl = `${decodedReturnUrl}${separator}companyId=${result._id}&companyName=${encodeURIComponent(result.name)}`;
+          console.log('Redirecting to:', redirectUrl);
+          router.push(redirectUrl);
+        } else {
+          // Default redirect to company list
+          console.log('No return URL, redirecting to company list');
+          router.push('/company');
+        }
       }, 1500);
     } catch (error) {
       setNotification({

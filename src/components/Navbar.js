@@ -47,15 +47,28 @@ const handleNewClose = () => setNewMenuAnchor(null);
     const pageTitles = {
       '/': 'Dashboard',
       '/contacts': 'Contacts',
+      '/contacts/create': 'Create Contact',
       '/tickets': 'Tickets',
-      '/reports': 'Reports',
-      '/settings': 'Settings',
-      '/automation': 'Automation',
-      '/knowledge': 'Knowledge Base',
+      '/tickets/create': 'Create Ticket',
+      '/agents': 'Agents',
+      '/agents/create': 'Create Agent',
+      '/groups': 'Groups',
+      '/groups/create': 'Create Group',
+      '/company': 'Companies',
+      '/company/create': 'Create Company',
+  
       '/admin': 'Admin',
       '/apps': 'Apps',
-      '/tickets/create': 'Create Ticket',
     };
+    
+    // Handle dynamic routes like edit and view pages
+    if (pathname.includes('/contacts/edit/')) return 'Edit Contact';
+    if (pathname.includes('/tickets/edit/')) return 'Edit Ticket';
+    if (pathname.includes('/tickets/view/')) return 'View Ticket';
+    if (pathname.includes('/agents/edit/')) return 'Edit Agent';
+    if (pathname.includes('/groups/edit/')) return 'Edit Group';
+    if (pathname.includes('/company/edit/')) return 'Edit Company';
+    
     return pageTitles[pathname] || 'Dashboard';
   };
 
