@@ -31,6 +31,7 @@ const teamSettings = [
     icon: <GroupsIcon color="primary" fontSize="medium" />,
     title: 'Groups',
     description: 'Organize agents and receive notifications on unattended tickets.',
+    link: '/groups', // 🔗 Route to app/groups/page.jsx
   },
   {
     icon: <RolesIcon color="primary" fontSize="medium" />,
