@@ -91,6 +91,8 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
       const method = editMode ? 'PUT' : 'POST';
       const url = editMode ? `/api/company/${initialData._id}` : '/api/company';
 
+      console.log('Making request to:', url); // Debug log
+
       const res = await fetch(url, {
         method,
         headers: {
@@ -100,13 +102,36 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
         body: JSON.stringify(formData)
       });
 
+      console.log('Response status:', res.status); // Debug log
+      console.log('Response headers:', res.headers); // Debug log
+
+      // Check if response is actually JSON
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await res.text();
+        console.error('Non-JSON response:', textResponse);
+        throw new Error(`Server returned non-JSON response. Status: ${res.status}`);
+      }
+
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || `Failed to ${editMode ? 'update' : 'add'} company`);
+      
+      if (!res.ok) {
+        throw new Error(result.error || `Failed to ${editMode ? 'update' : 'add'} company`);
+      }
 
       showNotification(`Company ${editMode ? 'updated' : 'added'} successfully`, 'success');
       router.push('/company');
     } catch (err) {
-      showNotification(err.message, 'error');
+      console.error('Error in handleCreateCompany:', err);
+      
+      // Better error handling for different types of errors
+      if (err.message.includes('Failed to fetch')) {
+        showNotification('Network error. Please check your connection.', 'error');
+      } else if (err.message.includes('non-JSON response')) {
+        showNotification('Server error. Please try again later.', 'error');
+      } else {
+        showNotification(err.message, 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -175,11 +200,10 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
       padding: '32px'
     },
     title: {
-      fontSize: '24px',
-      fontWeight: 600,
-      color: '#1f2937',
-      marginBottom: '24px',
-      margin: '0 0 24px 0'
+     fontSize: '1.8rem',
+          // fontWeight: 'bold',
+          marginBottom: '1.5rem',
+          textAlign: 'center',
     },
     fieldGroup: {
       marginBottom: '24px'
@@ -451,7 +475,7 @@ export default function AddCompanyForm({ editMode = false, initialData = {} }) {
         <div style={styles.formWrapper}>
           <div style={styles.formCard}>
             <h1 style={styles.title}>
-              Add Company
+              Create New Company
             </h1>
             
             {/* Company Name - Mandatory Field */}

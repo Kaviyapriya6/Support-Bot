@@ -37,12 +37,12 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
   const menuItems = [
     { href: '/', icon: <Dashboard />, label: 'Dashboard' },
     { href: '/contacts', icon: <People />, label: 'Contacts' },
-    { href: '/company', icon: <ConfirmationNumber />, label: 'Company' },
+    { href: '/company', icon: <SmartToy />, label: 'Company' },
     { href: '/tickets', icon: <ConfirmationNumber />, label: 'Tickets' },
-    { href: '/reports', icon: <Assessment />, label: 'Reports' },
-    { href: '/settings', icon: <Settings />, label: 'Settings' },
-    { href: '/automation', icon: <SmartToy />, label: 'Automation' },
-    { href: '/knowledge', icon: <MenuBook />, label: 'Knowledge Base' },
+    // { href: '/reports', icon: <Assessment />, label: 'Reports' },
+    // { href: '/settings', icon: <Settings />, label: 'Settings' },
+    // { href: '/automation', icon: <SmartToy />, label: 'Automation' },
+    // { href: '/knowledge', icon: <MenuBook />, label: 'Knowledge Base' },
     { href: '/admin', icon: <AdminPanelSettings />, label: 'Admin' },
   ];
 

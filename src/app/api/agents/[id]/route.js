@@ -20,10 +20,10 @@ export async function GET(request, context) {
 export async function PUT(request, { params }) {
   try {
     await connectDB();
-
+    const resolvedParams = await params;
     const data = await request.json();
 
-    const agent = await Agent.findByIdAndUpdate(params.id, data, { new: true });
+    const agent = await Agent.findByIdAndUpdate(resolvedParams.id, data, { new: true });
 
     if (!agent) {
       return Response.json({ error: 'Agent not found' }, { status: 404 });
@@ -37,19 +37,20 @@ export async function PUT(request, { params }) {
 }
 
 // DELETE agent by ID
-// export async function DELETE(request, { params }) {
-//   try {
-//     await connectDB();
+export async function DELETE(request, { params }) {
+  try {
+    await connectDB();
+    const resolvedParams = await params;
 
-//     const agent = await Agent.findByIdAndDelete(params.id);
+    const agent = await Agent.findByIdAndDelete(resolvedParams.id);
 
-//     if (!agent) {
-//       return Response.json({ error: 'Agent not found' }, { status: 404 });
-//     }
+    if (!agent) {
+      return Response.json({ error: 'Agent not found' }, { status: 404 });
+    }
 
-//     return Response.json({ message: 'Agent deleted' });
-//   } catch (err) {
-//     console.error('Delete error:', err);
-//     return Response.json({ error: 'Delete failed' }, { status: 500 });
-//   }
-// }
+    return Response.json({ message: 'Agent deleted' });
+  } catch (err) {
+    console.error('Delete error:', err);
+    return Response.json({ error: 'Delete failed' }, { status: 500 });
+  }
+}
