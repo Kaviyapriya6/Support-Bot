@@ -25,21 +25,76 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
   const router = useRouter();
   const [fileName, setFileName] = useState(initialValues?.fileName || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOtherIssueType, setShowOtherIssueType] = useState(false);
+  const [otherIssueType, setOtherIssueType] = useState('');
 
   const validationSchema = Yup.object({
-    customerId: Yup.string().required('Customer ID is required'),
-    email: Yup.string().email('Invalid email').required('Email is required'),
-    phone: Yup.string().required('Phone number is required'),
-    issueType: Yup.string().required('Issue type is required'),
-    priority: Yup.string().required('Priority is required'),
-    subject: Yup.string().required('Subject is required'),
-    description: Yup.string().required('Description is required'),
+    customerName: Yup.string()
+      .required('Customer Name is required')
+      .min(3, 'Customer Name must be at least 3 characters')
+      .max(50, 'Customer Name must not exceed 50 characters'),
+    email: Yup.string()
+      .email('Please enter a valid email address')
+      .required('Email is required')
+      .matches(
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        'Please enter a valid email address'
+      ),
+    phone: Yup.string()
+      .required('Phone number is required')
+      .matches(
+        /^[0-9]{10}$/,
+        'Phone number must be exactly 10 digits'
+      )
+      .test(
+        'is-valid-phone',
+        'Phone number must contain only digits',
+        (value) => value && /^\d+$/.test(value)
+      ),
+    issueType: Yup.string()
+      .required('Issue type is required')
+      .min(3, 'Issue type must be at least 3 characters')
+      .max(100, 'Issue type must not exceed 100 characters'),
+    priority: Yup.string()
+      .required('Priority is required')
+      .oneOf(['Low', 'Medium', 'High'], 'Please select a valid priority level'),
+    subject: Yup.string()
+      .required('Subject is required')
+      .min(5, 'Subject must be at least 5 characters')
+      .max(200, 'Subject must not exceed 200 characters'),
+    description: Yup.string()
+      .required('Description is required')
+      .min(10, 'Description must be at least 10 characters')
+      .max(2000, 'Description must not exceed 2000 characters'),
     file: Yup.mixed()
+      .nullable()
+      .test(
+        'fileSize',
+        'File size must be less than 5MB',
+        (value) => !value || (value && value.size <= 5 * 1024 * 1024)
+      )
+      .test(
+        'fileType',
+        'Only images, PDFs, and documents are allowed',
+        (value) => {
+          if (!value) return true;
+          const allowedTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain'
+          ];
+          return allowedTypes.includes(value.type);
+        }
+      )
   });
 
   const formik = useFormik({
     initialValues: initialValues || {
-      customerId: '',
+      customerName: '',
       email: '',
       phone: '',
       ticketId: '',
@@ -98,9 +153,49 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+      
+      // Validate file type
+      const allowedTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain'
+      ];
+      
+      if (!allowedTypes.includes(file.type)) {
+        alert('Only images, PDFs, and documents are allowed');
+        return;
+      }
+      
       setFileName(file.name);
       formik.setFieldValue('file', file);
     }
+  };
+
+  const handleIssueTypeChange = (event) => {
+    const value = event.target.value;
+    if (value === 'Other') {
+      setShowOtherIssueType(true);
+      formik.setFieldValue('issueType', '');
+    } else {
+      setShowOtherIssueType(false);
+      setOtherIssueType('');
+      formik.setFieldValue('issueType', value);
+    }
+  };
+
+  const handleOtherIssueTypeChange = (event) => {
+    const value = event.target.value;
+    setOtherIssueType(value);
+    formik.setFieldValue('issueType', value);
   };
 
   return (
@@ -109,83 +204,9 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
       bgcolor: '#f8fafc',
       p: 3
     }}>
-      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+      {/* <Box sx={{ maxWidth: 1200, mx: 'auto' }}> */}
         {/* Header */}
-        <Box sx={{ 
-          mb: 4,
-          p: 3,
-          bgcolor: 'white',
-          borderRadius: 2,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #e2e8f0'
-        }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <Box sx={{ 
-                p: 1.5, 
-                bgcolor: 'primary.main', 
-                borderRadius: 2,
-                color: 'white'
-              }}>
-                <AssignmentIcon sx={{ fontSize: 28 }} />
-              </Box>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                  {mode === 'create' ? 'Create New Ticket' : 'Edit Ticket'}
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
-                  {mode === 'create' ? 'Fill in the details to create a new support ticket' : 'Update the ticket information'}
-                </Typography>
-              </Box>
-            </Stack>
-            
-            {/* Action Buttons in Header */}
-            <Stack direction="row" spacing={2}>
-              <Button 
-                variant="outlined" 
-                onClick={() => router.back()}
-                startIcon={<CancelIcon />}
-                sx={{ 
-                  borderColor: '#e2e8f0',
-                  color: '#64748b',
-                  '&:hover': {
-                    borderColor: '#cbd5e1',
-                    bgcolor: '#f8fafc'
-                  }
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                form="ticket-form"
-                variant="contained" 
-                disabled={isSubmitting || !formik.isValid}
-                startIcon={<SaveIcon />}
-                sx={{ 
-                  bgcolor: 'primary.main',
-                  '&:hover': { bgcolor: 'primary.dark' },
-                  px: 3
-                }}
-              >
-                {isSubmitting ? 'Saving...' : 'Save Ticket'}
-              </Button>
-            </Stack>
-          </Stack>
-          
-          {isSubmitting && (
-            <LinearProgress 
-              sx={{ 
-                mt: 2, 
-                borderRadius: 1,
-                bgcolor: '#e2e8f0',
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: 1
-                }
-              }} 
-            />
-          )}
-        </Box>
+       
 
         {/* Main Form */}
         <Paper sx={{ 
@@ -199,32 +220,43 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
             <Grid container spacing={4}>
               {/* Customer Information Section */}
               <Grid item xs={12}>
-                <Box sx={{ mb: 3 }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    mb: 3,
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 2,
+                    bgcolor: '#fafcff'
+                  }}
+                >
                   <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
                     <PersonIcon sx={{ color: 'primary.main', fontSize: 24 }} />
                     <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>
                       Customer Information
                     </Typography>
                   </Stack>
-                  
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Customer ID"
-                        name="customerId"
-                        value={formik.values.customerId || ''}
+                        label="Customer Name"
+                        name="customerName"
+                        value={formik.values.customerName || ''}
                         onChange={formik.handleChange}
-                        error={formik.touched.customerId && Boolean(formik.errors.customerId)}
-                        helperText={formik.touched.customerId && formik.errors.customerId}
+                        onBlur={formik.handleBlur}
+                        error={formik.touched.customerName && Boolean(formik.errors.customerName)}
+                        helperText={formik.touched.customerName && formik.errors.customerName}
+                        placeholder="Enter customer name (3-50 characters)"
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
+                            bgcolor: 'white'
                           }
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
                         label="Ticket ID"
@@ -239,7 +271,7 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
                         label="Email Address"
@@ -247,330 +279,258 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                         type="email"
                         value={formik.values.email || ''}
                         onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
                         error={formik.touched.email && Boolean(formik.errors.email)}
                         helperText={formik.touched.email && formik.errors.email}
+                        placeholder="Enter valid email address"
                         InputProps={{
                           startAdornment: <EmailIcon sx={{ color: '#64748b', mr: 1 }} />
                         }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
+                            bgcolor: 'white'
                           }
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
                         label="Phone Number"
                         name="phone"
                         value={formik.values.phone || ''}
-                        onChange={formik.handleChange}
+                        onChange={(e) => {
+                          // Only allow digits and limit to 10 characters
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          formik.setFieldValue('phone', value);
+                        }}
+                        onBlur={formik.handleBlur}
                         error={formik.touched.phone && Boolean(formik.errors.phone)}
                         helperText={formik.touched.phone && formik.errors.phone}
+                        placeholder="Enter 10-digit phone number"
                         InputProps={{
                           startAdornment: <PhoneIcon sx={{ color: '#64748b', mr: 1 }} />
                         }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
+                            bgcolor: 'white'
                           }
                         }}
                       />
                     </Grid>
                   </Grid>
-                </Box>
+                </Paper>
 
                 <Divider sx={{ my: 4, borderColor: '#e2e8f0' }} />
 
-                {/* Issue Description and Ticket Classification Row */}
-                <Grid container spacing={4} sx={{ mb: 3 }}>
-                  {/* Issue Description Section - Left Side */}
-                  <Grid item xs={12} md={8}>
-                    <Paper elevation={0} sx={{ 
-                      p: 3, 
-                      border: '1px solid #e0e0e0', 
-                      borderRadius: 2,
-                      bgcolor: '#fafafa',
-                      height: '100%'
-                    }}>
-                      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
-                        <Box sx={{
-                          p: 1,
-                          borderRadius: 1,
-                          bgcolor: 'primary.main',
-                          color: 'white'
-                        }}>
-                          <AssignmentIcon sx={{ fontSize: 20 }} />
-                        </Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>
-                          Issue Description
-                        </Typography>
-                      </Stack>
-                      
-                      <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                          <TextField
-                            fullWidth
-                            label="Subject"
-                            name="subject"
-                            value={formik.values.subject || ''}
-                            onChange={formik.handleChange}
-                            error={formik.touched.subject && Boolean(formik.errors.subject)}
-                            helperText={formik.touched.subject && formik.errors.subject}
-                            placeholder="Brief summary of the issue"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 2,
-                                bgcolor: 'white'
-                              }
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <TextField
-                            fullWidth
-                            multiline
-                            rows={10}
-                            label="Detailed Description"
-                            name="description"
-                            value={formik.values.description || ''}
-                            onChange={formik.handleChange}
-                            error={formik.touched.description && Boolean(formik.errors.description)}
-                            helperText={formik.touched.description && formik.errors.description}
-                            placeholder="Please provide a comprehensive description of the issue, including steps to reproduce, error messages, and any relevant details..."
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 2,
-                                bgcolor: 'white'
-                              }
-                            }}
-                          />
-                        </Grid>
-                      </Grid>
-                    </Paper>
+                {/* Issue Description Heading */}
+                <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+                  <AssignmentIcon sx={{ color: 'primary.main', fontSize: 24 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                    Issue Description
+                  </Typography>
+                </Stack>
+
+                {/* Issue Details Row - All fields in one horizontal line */}
+                <Grid container spacing={3} sx={{ mb: 3 }} alignItems="flex-start">
+                  {/* Subject */}
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Subject"
+                      name="subject"
+                      value={formik.values.subject || ''}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={formik.touched.subject && Boolean(formik.errors.subject)}
+                      helperText={formik.touched.subject && formik.errors.subject}
+                      placeholder="Brief summary (5-200 chars)"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          bgcolor: 'white'
+                        }
+                      }}
+                    />
                   </Grid>
-
-                  {/* Ticket Classification Section - Right Side */}
-                  <Grid item xs={12} md={4}>
-                    <Paper elevation={0} sx={{ 
-                      p: 3, 
-                      border: '1px solid #e0e0e0', 
-                      borderRadius: 2,
-                      bgcolor: '#f8fafc',
-                      height: '100%'
-                    }}>
-                      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
-                        <Box sx={{
-                          p: 1,
-                          borderRadius: 1,
-                          bgcolor: 'warning.main',
-                          color: 'white'
-                        }}>
-                          <AssignmentIcon sx={{ fontSize: 20 }} />
-                        </Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>
-                          Classification
-                        </Typography>
-                      </Stack>
+                  {/* Issue Type */}
+                  <Grid item xs={12} md={3}>
+                    <Box>
+                      <FormControl fullWidth>
+                        {/* <InputLabel>Issue Type</InputLabel> */}
+                        <Select
+                          name="issueType"
+                          value={showOtherIssueType ? 'Other' : (formik.values.issueType || '')}
+                          onChange={handleIssueTypeChange}
+                          onBlur={formik.handleBlur}
+                          error={formik.touched.issueType && Boolean(formik.errors.issueType)}
+                          sx={{
+                            borderRadius: 2,
+                            bgcolor: 'white',
+                            height: 56,
+                            '& .MuiSelect-select': {
+                              height: '24px !important',
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '16px 14px',
+                            }
+                          }}
+                          displayEmpty
+                        >
+                          <MenuItem value="">
+                            <Typography sx={{ color: '#9ca3af' }}>Select issue type</Typography>
+                          </MenuItem>
+                          <MenuItem value="Technical">Technical Issue</MenuItem>
+                          <MenuItem value="Billing">Billing Issue</MenuItem>
+                          <MenuItem value="Account">Account Issue</MenuItem>
+                          <MenuItem value="General">General Inquiry</MenuItem>
+                          <MenuItem value="Bug Report">Bug Report</MenuItem>
+                          <MenuItem value="Feature Request">Feature Request</MenuItem>
+                          <MenuItem value="Other">Other</MenuItem>
+                        </Select>
+                        {formik.touched.issueType && formik.errors.issueType && (
+                          <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, ml: 2 }}>
+                            {formik.errors.issueType}
+                          </Typography>
+                        )}
+                      </FormControl>
                       
-                      <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                          <FormControl fullWidth>
-                            <InputLabel>Issue Type</InputLabel>
-                            <Select
-                              name="issueType"
-                              value={formik.values.issueType || ''}
-                              onChange={formik.handleChange}
-                              error={formik.touched.issueType && Boolean(formik.errors.issueType)}
-                              sx={{
-                                borderRadius: 2,
-                                bgcolor: 'white',
-                                minHeight: 56,
-                                '& .MuiSelect-select': {
-                                  minHeight: '24px !important',
-                                  display: 'flex',
-                                  alignItems: 'center'
-                                }
-                              }}
-                              MenuProps={{
-                                PaperProps: {
-                                  sx: {
-                                    maxHeight: 300,
-                                    '& .MuiMenuItem-root': {
-                                      whiteSpace: 'normal',
-                                      wordWrap: 'break-word'
-                                    }
-                                  }
-                                }
-                              }}
-                              displayEmpty
-                              renderValue={(selected) => {
-                                if (!selected) {
-                                  return <Typography sx={{ color: '#9ca3af' }}>Select Issue Type</Typography>;
-                                }
-                                return selected;
-                              }}
-                            >
-                              <MenuItem value="Technical">
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 500 }}>Technical Support</Typography>
-                                  <Typography variant="caption" sx={{ color: '#64748b' }}>Hardware, software, or system issues</Typography>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem value="Billing">
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 500 }}>Billing & Payment</Typography>
-                                  <Typography variant="caption" sx={{ color: '#64748b' }}>Invoice, payment, or account issues</Typography>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem value="General">
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 500 }}>General Inquiry</Typography>
-                                  <Typography variant="caption" sx={{ color: '#64748b' }}>Questions, feedback, or general support</Typography>
-                                </Box>
-                              </MenuItem>
-                            </Select>
-                            {formik.touched.issueType && formik.errors.issueType && (
-                              <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, ml: 2 }}>
-                                {formik.errors.issueType}
+                      {showOtherIssueType && (
+                        <TextField
+                          fullWidth
+                          label="Specify Issue Type"
+                          value={otherIssueType}
+                          onChange={handleOtherIssueTypeChange}
+                          onBlur={formik.handleBlur}
+                          error={formik.touched.issueType && Boolean(formik.errors.issueType)}
+                          helperText={formik.touched.issueType && formik.errors.issueType}
+                          placeholder="Please specify the issue type"
+                          sx={{
+                            mt: 2,
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              bgcolor: 'white',
+                              height: 56,
+                            },
+                            '& .MuiInputLabel-root': {
+                              color: '#374151',
+                            },
+                            '& .MuiOutlinedInput-input': {
+                              padding: '16px 14px',
+                            }
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </Grid>
+                  {/* Detailed Description */}
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Detailed Description"
+                      name="description"
+                      value={formik.values.description || ''}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={formik.touched.description && Boolean(formik.errors.description)}
+                      helperText={formik.touched.description && formik.errors.description}
+                      placeholder="Comprehensive description (10-2000 chars)"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          bgcolor: 'white',
+                          height: 56, // Match height with other fields
+                          alignItems: 'flex-start'
+                        },
+                        '& .MuiInputBase-inputMultiline': {
+                          paddingTop: '16px'
+                        }
+                      }}
+                    />
+                  </Grid>
+                  {/* Priority Level */}
+                  <Grid item xs={12} md={3}>
+                    <FormControl fullWidth>
+                      {/* <InputLabel>Priority Level</InputLabel> */}
+                      <Select
+                        name="priority"
+                        value={formik.values.priority || ''}
+                        onChange={formik.handleChange}
+                        error={formik.touched.priority && Boolean(formik.errors.priority)}
+                        sx={{
+                          borderRadius: 2,
+                          bgcolor: 'white',
+                          height: 56,
+                          minHeight: 56,
+                          '& .MuiSelect-select': {
+                            height: '24px !important',
+                            minHeight: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '16px 14px',
+                          }
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 300,
+                              '& .MuiMenuItem-root': {
+                                whiteSpace: 'normal',
+                                wordWrap: 'break-word'
+                              }
+                            }
+                          }
+                        }}
+                        displayEmpty
+                        renderValue={(selected) => {
+                          if (!selected) {
+                            return (
+                              <Typography sx={{ color: '#9ca3af', minHeight: '24px', display: 'flex', alignItems: 'center' }}>
+                                Select priority
                               </Typography>
-                            )}
-                          </FormControl>
-                        </Grid>
-                        
-                        <Grid item xs={12}>
-                          <FormControl fullWidth>
-                            <InputLabel>Priority Level</InputLabel>
-                            <Select
-                              name="priority"
-                              value={formik.values.priority || ''}
-                              onChange={formik.handleChange}
-                              error={formik.touched.priority && Boolean(formik.errors.priority)}
-                              sx={{
-                                borderRadius: 2,
-                                bgcolor: 'white',
-                                minHeight: 56,
-                                '& .MuiSelect-select': {
-                                  minHeight: '24px !important',
-                                  display: 'flex',
-                                  alignItems: 'center'
-                                }
-                              }}
-                              MenuProps={{
-                                PaperProps: {
-                                  sx: {
-                                    maxHeight: 300,
-                                    '& .MuiMenuItem-root': {
-                                      whiteSpace: 'normal',
-                                      wordWrap: 'break-word'
-                                    }
-                                  }
-                                }
-                              }}
-                              displayEmpty
-                              renderValue={(selected) => {
-                                if (!selected) {
-                                  return <Typography sx={{ color: '#9ca3af' }}>Select Priority Level</Typography>;
-                                }
-                                return (
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Chip 
-                                      label={selected} 
-                                      color={selected === 'High' ? 'error' : selected === 'Medium' ? 'warning' : 'success'} 
-                                      size="small" 
-                                    />
-                                    <Typography variant="body2">{selected} Priority</Typography>
-                                  </Box>
-                                );
-                              }}
-                            >
-                              <MenuItem value="Low">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Chip label="Low" color="success" size="small" />
-                                  <Typography variant="body2">Low Priority</Typography>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem value="Medium">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Chip label="Med" color="warning" size="small" />
-                                  <Typography variant="body2">Medium Priority</Typography>
-                                </Box>
-                              </MenuItem>
-                              <MenuItem value="High">
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Chip label="High" color="error" size="small" />
-                                  <Typography variant="body2">High Priority</Typography>
-                                </Box>
-                              </MenuItem>
-                            </Select>
-                            {formik.touched.priority && formik.errors.priority && (
-                              <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, ml: 2 }}>
-                                {formik.errors.priority}
-                              </Typography>
-                            )}
-                          </FormControl>
-                        </Grid>
-                      </Grid>
-
-                      {/* Current Values Display */}
-                      <Box sx={{ mt: 4 }}>
-                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, mb: 2, display: 'block' }}>
-                          Current Classification:
+                            );
+                          }
+                          return (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Chip 
+                                label={selected} 
+                                color={selected === 'High' ? 'error' : selected === 'Medium' ? 'warning' : 'success'} 
+                                size="small" 
+                              />
+                              <Typography variant="body2">{selected} Priority</Typography>
+                            </Box>
+                          );
+                        }}
+                      >
+                        <MenuItem value="Low">
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip label="Low" color="success" size="small" />
+                            <Typography variant="body2">Low Priority</Typography>
+                          </Box>
+                        </MenuItem>
+                        <MenuItem value="Medium">
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip label="Med" color="warning" size="small" />
+                            <Typography variant="body2">Medium Priority</Typography>
+                          </Box>
+                        </MenuItem>
+                        <MenuItem value="High">
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip label="High" color="error" size="small" />
+                            <Typography variant="body2">High Priority</Typography>
+                          </Box>
+                        </MenuItem>
+                      </Select>
+                      {formik.touched.priority && formik.errors.priority && (
+                        <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, ml: 2 }}>
+                          {formik.errors.priority}
                         </Typography>
-                        <Stack direction="column" spacing={2}>
-                          {formik.values.issueType && (
-                            <Chip 
-                              label={`Type: ${formik.values.issueType}`} 
-                              variant="outlined"
-                              size="small"
-                              sx={{ 
-                                fontWeight: 500, 
-                                borderColor: 'primary.main', 
-                                color: 'primary.main',
-                                alignSelf: 'flex-start'
-                              }}
-                            />
-                          )}
-                          {formik.values.priority && (
-                            <Chip 
-                              label={`Priority: ${formik.values.priority}`} 
-                              color={formik.values.priority === 'High' ? 'error' : formik.values.priority === 'Medium' ? 'warning' : 'success'}
-                              variant="filled"
-                              size="small"
-                              sx={{ 
-                                fontWeight: 500,
-                                alignSelf: 'flex-start'
-                              }}
-                            />
-                          )}
-                          {mode === 'create' && (
-                            <Chip 
-                              label="Status: Open" 
-                              color="info"
-                              variant="filled"
-                              size="small"
-                              sx={{ 
-                                fontWeight: 500,
-                                alignSelf: 'flex-start'
-                              }}
-                            />
-                          )}
-                          {mode === 'edit' && formik.values.status && (
-                            <Chip 
-                              label={`Status: ${formik.values.status}`} 
-                              color={formik.values.status === 'Open' ? 'info' : formik.values.status === 'In Progress' ? 'warning' : formik.values.status === 'Resolved' ? 'success' : 'default'}
-                              variant="filled"
-                              size="small"
-                              sx={{ 
-                                fontWeight: 500,
-                                alignSelf: 'flex-start'
-                              }}
-                            />
-                          )}
-                        </Stack>
-                      </Box>
-                    </Paper>
+                      )}
+                    </FormControl>
                   </Grid>
                 </Grid>
 
@@ -578,9 +538,21 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
 
                 {/* File Upload Section */}
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b', mb: 3 }}>
-                    Attachments
-                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                      Attachments
+                    </Typography>
+                    <Chip 
+                      label="Optional" 
+                      color="info" 
+                      variant="outlined" 
+                      size="small"
+                      sx={{ 
+                        fontWeight: 500,
+                        fontSize: '0.75rem'
+                      }}
+                    />
+                  </Stack>
                   
                   <Box sx={{ 
                     p: 4, 
@@ -596,10 +568,13 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                   }}>
                     <CloudUploadIcon sx={{ fontSize: 48, color: '#64748b', mb: 2 }} />
                     <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
-                      Upload Files
+                      Upload Files (Optional)
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-                      Drag and drop files here or click to browse
+                      Drag and drop files here or click to browse (Max size: 5MB) - This field is optional
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b', mb: 2, display: 'block' }}>
+                      Supported formats: JPG, PNG, GIF, PDF, DOC, DOCX, TXT
                     </Typography>
                     <Button 
                       variant="contained" 
@@ -634,9 +609,60 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                 </Box>
               </Grid>
             </Grid>
+
+            {/* Action Buttons at Bottom */}
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button 
+                variant="outlined" 
+                onClick={() => router.back()}
+                startIcon={<CancelIcon />}
+                sx={{ 
+                  borderColor: '#e2e8f0',
+                  color: '#64748b',
+                  px: 4,
+                  py: 1.5,
+                  '&:hover': {
+                    borderColor: '#cbd5e1',
+                    bgcolor: '#f8fafc'
+                  }
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                form="ticket-form"
+                variant="contained" 
+                disabled={isSubmitting || !formik.isValid}
+                startIcon={<SaveIcon />}
+                sx={{ 
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  px: 4,
+                  py: 1.5
+                }}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Ticket'}
+              </Button>
+            </Box>
+
+            {/* Loading Progress Bar */}
+            {isSubmitting && (
+              <Box sx={{ mt: 3 }}>
+                <LinearProgress 
+                  sx={{ 
+                    borderRadius: 1,
+                    bgcolor: '#e2e8f0',
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 1
+                    }
+                  }} 
+                />
+              </Box>
+            )}
           </form>
         </Paper>
-      </Box>
+      {/* </Box> */}
     </Box>
   );
 }
