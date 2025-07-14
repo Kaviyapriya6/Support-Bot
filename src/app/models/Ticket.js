@@ -11,6 +11,7 @@ const TicketSchema = new mongoose.Schema({
   subject: String,
   description: String,
   fileName: String,
+  emails: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Email' }],
 }, { timestamps: true });
 
 export default mongoose.models.Ticket || mongoose.model('Ticket', TicketSchema);

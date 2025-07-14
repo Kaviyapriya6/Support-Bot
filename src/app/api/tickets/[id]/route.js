@@ -5,7 +5,7 @@ export async function GET(req, context) {
   await dbConnect();
   const { params } = context;
   const resolvedParams = await params;
-  const ticket = await Ticket.findById(resolvedParams.id);
+  const ticket = await Ticket.findById(resolvedParams.id).populate('emails');
   if (!ticket) {
     return Response.json({ error: 'Not found' }, { status: 404 });
   }

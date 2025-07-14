@@ -1,4 +1,4 @@
-
+'use client';
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -47,8 +47,10 @@ import {
   Warning,
   CheckCircle
 } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 
 const SupportTicketForm = ({ onSubmit }) => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     from: 'ihub (support@smsgroup-support.freshdesk.com)',
     to: '',
@@ -348,6 +350,9 @@ const SupportTicketForm = ({ onSubmit }) => {
 
       if (!formData.sendAnother) {
         handleReset();
+        // Navigate to ticket dashboard after successful creation
+        router.push('/tickets');
+        return;
       }
 
     } catch (error) {

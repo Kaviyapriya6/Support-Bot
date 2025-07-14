@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../lib/Email'; // Your dbConnect function
 import Email from '../../models/email'; // Your Email model
+import Ticket from '../../models/Ticket'; // Add this import
 
 // GET all emails
 export async function GET(req) {
@@ -77,9 +78,42 @@ export async function POST(req) {
 
     console.log('Email created successfully:', savedEmail._id);
 
+    // --- Associate email with ticket ---
+    let ticket;
+    if (body.referenceNumber) {
+      // Try to find an existing ticket by ticketId or _id
+      ticket = await Ticket.findOne({ $or: [ { ticketId: body.referenceNumber }, { _id: body.referenceNumber } ] });
+      if (ticket) {
+        // Add email to ticket's emails array if not already present
+        if (!ticket.emails) ticket.emails = [];
+        if (!ticket.emails.some(eid => eid.equals(savedEmail._id))) {
+          ticket.emails.push(savedEmail._id);
+          await ticket.save();
+        }
+      }
+    }
+    if (!ticket) {
+      // Create a new ticket if not found
+      ticket = new Ticket({
+        ticketId: body.referenceNumber || `TICKET-${Date.now()}`,
+        customerName: body.customerName || '',
+        email: body.to,
+        phone: body.phone || '',
+        issueType: body.type || '',
+        priority: body.priority || 'Low',
+        status: body.status || 'Open',
+        subject: body.subject,
+        description: body.description,
+        fileName: body.attachments && body.attachments.length > 0 ? body.attachments[0].filename : '',
+        emails: [savedEmail._id]
+      });
+      await ticket.save();
+    }
+
     return NextResponse.json({
       message: 'Email created successfully',
-      email: savedEmail
+      email: savedEmail,
+      ticket
     }, { status: 201 });
 
   } catch (error) {
