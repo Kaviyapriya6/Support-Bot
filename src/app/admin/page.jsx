@@ -37,27 +37,32 @@ const teamSettings = [
     icon: <RolesIcon color="primary" fontSize="medium" />,
     title: 'Roles',
     description: 'Provide and restrict fine-grained levels of access and privileges for agents.',
+     link: '/roles', // 🔗 Route to app/roles/page.jsx
   },
   {
     icon: <BusinessHoursIcon color="primary" fontSize="medium" />,
     title: 'Business Hours',
     description: 'Define working hours and holidays to set expectations with customers.',
+    link: '/business', 
   },
   {
     icon: <SkillsIcon color="primary" fontSize="medium" />,
     title: 'Skills',
     description: 'Automatically assign certain kind of tickets to agents based on their expertise.',
+    link: '/skills', // 🔗 Route to app/skills/page.jsx
   },
   {
     icon: <ShiftsIcon color="primary" fontSize="medium" />,
     title: 'Agent Shifts',
     description: 'Create and effectively manage agent schedules in one place.',
+    link: '/shifts', // 🔗 Route to app/shifts/page.jsx
   },
   {
     icon: <StatusesIcon color="primary" fontSize="medium" />,
     title: 'Agent Statuses',
     description: 'Configure statuses to define agent availability and get clear visibility on where they spend their time.',
     isNew: true,
+    link: '/status', // 🔗 Route to app/statuses/page.jsx
   },
 ];
 
