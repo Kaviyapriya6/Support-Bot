@@ -237,6 +237,24 @@ export default function TicketView({ ticketData }) {
           </Box>
         </Paper>
 
+        {/* Associated Emails */}
+        {Array.isArray(ticketData.emails) && ticketData.emails.length > 0 && (
+          <Paper sx={{ p: 4, borderRadius: 3, mb: 4 }}>
+            <Typography variant="h6" fontWeight={600} mb={3}>Associated Emails</Typography>
+            <Box>
+              {ticketData.emails.map((email) => (
+                <Paper key={email._id} sx={{ p: 2, mb: 2, bgcolor: '#f3f4f6' }}>
+                  <Typography variant="subtitle1" fontWeight={500}>{email.subject}</Typography>
+                  <Typography variant="body2" color="text.secondary">From: {email.from}</Typography>
+                  <Typography variant="body2" color="text.secondary">To: {email.to}</Typography>
+                  <Typography variant="body2" color="text.secondary">Date: {new Date(email.createdAt).toLocaleString()}</Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>{email.description}</Typography>
+                </Paper>
+              ))}
+            </Box>
+          </Paper>
+        )}
+
         {/* Attachments */}
         {ticketData.fileName && (
           <Paper sx={{ p: 4, borderRadius: 3, mb: 4 }}>

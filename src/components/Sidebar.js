@@ -42,7 +42,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
     // { href: '/reports', icon: <Assessment />, label: 'Reports' },
     // { href: '/settings', icon: <Settings />, label: 'Settings' },
     // { href: '/automation', icon: <SmartToy />, label: 'Automation' },
-    // { href: '/knowledge', icon: <MenuBook />, label: 'Knowledge Base' },
+    { href: '/solutions', icon: <MenuBook />, label: 'Solutions' },
     { href: '/admin', icon: <AdminPanelSettings />, label: 'Admin' },
   ];
 
