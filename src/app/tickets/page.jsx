@@ -208,10 +208,10 @@ export default function TicketListPage() {
         'closed': 'default'
       }
     },
-    {
-      field: 'assignedTo',
-      header: 'Assigned To'
-    },
+    // {
+    //   field: 'assignedTo',
+    //   header: 'Assigned To'
+    // },
     {
       field: 'createdAt',
       header: 'Created Date',
