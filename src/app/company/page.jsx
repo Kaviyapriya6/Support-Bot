@@ -336,20 +336,20 @@ export default function CompanyListPage() {
       field: 'industry',
       header: 'Industry'
     },
-    {
-      field: 'size',
-      header: 'Company Size'
-    },
-    {
-      field: 'status',
-      header: 'Status',
-      type: 'status',
-      statusColors: {
-        'active': 'success',
-        'inactive': 'default',
-        'suspended': 'error'
-      }
-    },
+    // {
+    //   field: 'size',
+    //   header: 'Company Size'
+    // },
+    // {
+    //   field: 'status',
+    //   header: 'Status',
+    //   type: 'status',
+    //   statusColors: {
+    //     'active': 'success',
+    //     'inactive': 'default',
+    //     'suspended': 'error'
+    //   }
+    // },
     {
       field: 'createdAt',
       header: 'Created Date',

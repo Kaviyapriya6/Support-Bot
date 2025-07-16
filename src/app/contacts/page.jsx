@@ -189,16 +189,16 @@ export default function ContactListPage() {
       field: 'company',
       header: 'Company'
     },
-    {
-      field: 'status',
-      header: 'Status',
-      type: 'status',
-      statusColors: {
-        'active': 'success',
-        'inactive': 'default',
-        'blocked': 'error'
-      }
-    },
+    // {
+    //   field: 'status',
+    //   header: 'Status',
+    //   type: 'status',
+    //   statusColors: {
+    //     'active': 'success',
+    //     'inactive': 'default',
+    //     'blocked': 'error'
+    //   }
+    // },
     {
       field: 'createdAt',
       header: 'Created Date',
