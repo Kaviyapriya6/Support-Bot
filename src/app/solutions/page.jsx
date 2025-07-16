@@ -1,5 +1,6 @@
 'use client'
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Box,
   Typography,
@@ -25,6 +26,8 @@ import {
 } from '@mui/icons-material';
 
 const KnowledgeBaseUI = () => {
+  const router = useRouter();
+
   return (
     <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh' }}>
       {/* Header */}
@@ -61,6 +64,7 @@ const KnowledgeBaseUI = () => {
                 textTransform: 'none',
                 fontSize: '14px'
               }}
+              onClick={() => router.push('/solutions/create')} // Add this
             >
               New article
             </Button>
