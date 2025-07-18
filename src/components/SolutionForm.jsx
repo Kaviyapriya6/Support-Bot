@@ -201,9 +201,41 @@ export default function CMSEditor() {
     showNotification('Article saved successfully');
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    if (!title.trim() || !content.trim() || !selectedHierarchy) {
+      showNotification('Please fill all required fields', 'error');
+      return;
+    }
     setIsPublished(true);
-    showNotification('Article published successfully');
+
+    // Prepare the article data
+    const articleData = {
+      title,
+      content,
+      hierarchy: selectedHierarchy,
+      tags,
+      seoTitle,
+      seoDescription,
+      published: true,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Send to backend
+    try {
+      const res = await fetch('/api/solutions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(articleData),
+      });
+      if (res.ok) {
+        showNotification('Article published successfully');
+        // Optionally, clear the form or redirect
+      } else {
+        showNotification('Failed to publish article', 'error');
+      }
+    } catch (err) {
+      showNotification('Error publishing article', 'error');
+    }
   };
 
   const handlePreview = () => {
