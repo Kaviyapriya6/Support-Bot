@@ -66,56 +66,65 @@ export default function DashboardPage() {
       }).length,
       open: tickets.filter(t => t.status === 'Open').length,
       onHold: tickets.filter(t => t.status === 'On Hold').length,
-      unassigned: tickets.filter(t => !t.assignedTo).length,
+      unassigned: tickets.filter(t => !t.assignedTo || (Array.isArray(t.assignedTo) && t.assignedTo.length === 0)).length,
       resolved: tickets.filter(t => t.status === 'Resolved').length,
       received: tickets.length
     };
     return stats;
   };
 
-  const getTrendsData = () => {
-    // Generate sample trend data (replace with actual data processing)
-    return [
-      { hour: '0', value: 12 },
-      { hour: '1', value: 8 },
-      { hour: '2', value: 15 },
-      { hour: '3', value: 10 },
-      { hour: '4', value: 18 },
-      { hour: '5', value: 22 },
-      { hour: '6', value: 25 },
-      { hour: '7', value: 20 },
-      { hour: '8', value: 28 },
-      { hour: '9', value: 30 },
-      { hour: '10', value: 32 },
-      { hour: '11', value: 35 },
-      { hour: '12', value: 40 },
-      { hour: '13', value: 38 },
-      { hour: '14', value: 42 },
-      { hour: '15', value: 45 },
-      { hour: '16', value: 48 },
-      { hour: '17', value: 50 },
-      { hour: '18', value: 46 },
-      { hour: '19', value: 43 },
-      { hour: '20', value: 40 },
-      { hour: '21', value: 35 },
-      { hour: '22', value: 30 },
-      { hour: '23', value: 25 }
-    ];
-  };
+  // Fetch trends data from API
+  const [trendsData, setTrendsData] = useState([]);
+  useEffect(() => {
+    const fetchTrends = async () => {
+      try {
+        const res = await fetch('/api/tickets/trends');
+        if (res.ok) {
+          const data = await res.json();
+          setTrendsData(data);
+        }
+      } catch (err) {
+        setTrendsData([]);
+      }
+    };
+    fetchTrends();
+  }, []);
 
-  const getUnresolvedTicketsBreakdown = () => {
-    const groups = [
-      { name: 'Customer support', count: 32, color: '#1976d2' },
-      { name: 'Loyalty programs', count: 8, color: '#388e3c' },
-      { name: 'Vendor management', count: 12, color: '#f57c00' },
-      { name: 'Billing', count: 3, color: '#d32f2f' }
-    ];
-    return groups;
-  };
+  // Fetch unresolved breakdown from API
+  const [unresolvedBreakdown, setUnresolvedBreakdown] = useState([]);
+  useEffect(() => {
+    const fetchBreakdown = async () => {
+      try {
+        const res = await fetch('/api/tickets/unresolved-breakdown');
+        if (res.ok) {
+          const data = await res.json();
+          setUnresolvedBreakdown(data);
+        }
+      } catch (err) {
+        setUnresolvedBreakdown([]);
+      }
+    };
+    fetchBreakdown();
+  }, []);
+
+  // Fetch satisfaction from API
+  const [satisfaction, setSatisfaction] = useState({ responses: 0, positive: 0, neutral: 0, negative: 0 });
+  useEffect(() => {
+    const fetchSatisfaction = async () => {
+      try {
+        const res = await fetch('/api/tickets/satisfaction');
+        if (res.ok) {
+          const data = await res.json();
+          setSatisfaction(data);
+        }
+      } catch (err) {
+        setSatisfaction({ responses: 0, positive: 0, neutral: 0, negative: 0 });
+      }
+    };
+    fetchSatisfaction();
+  }, []);
 
   const stats = getTicketStats();
-  const trendsData = getTrendsData();
-  const unresolvedBreakdown = getUnresolvedTicketsBreakdown();
 
   if (loading) {
     return (
@@ -397,7 +406,7 @@ export default function DashboardPage() {
                     Responses received
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                    320
+                    {satisfaction.responses}
                   </Typography>
                 </Box>
                 
@@ -409,7 +418,7 @@ export default function DashboardPage() {
                     </Typography>
                   </Stack>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: '#4caf50' }}>
-                    90%
+                    {satisfaction.positive}%
                   </Typography>
                 </Box>
                 
@@ -421,7 +430,7 @@ export default function DashboardPage() {
                     </Typography>
                   </Stack>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: '#ff9800' }}>
-                    6%
+                    {satisfaction.neutral}%
                   </Typography>
                 </Box>
                 
@@ -433,7 +442,7 @@ export default function DashboardPage() {
                     </Typography>
                   </Stack>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: '#f44336' }}>
-                    4%
+                    {satisfaction.negative}%
                   </Typography>
                 </Box>
               </Stack>
