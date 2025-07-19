@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function TicketForm({ initialValues, onSubmit, mode = 'create' }) {
@@ -27,12 +27,39 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOtherIssueType, setShowOtherIssueType] = useState(false);
   const [otherIssueType, setOtherIssueType] = useState('');
+  const [contacts, setContacts] = useState([]);
+  const [contactSearch, setContactSearch] = useState('');
+  const [showAddContact, setShowAddContact] = useState(false);
+
+  // Fetch contacts for dropdown and handle new contact from URL
+  useEffect(() => {
+    fetch('/api/contacts')
+      .then(res => res.json())
+      .then(data => {
+        setContacts(data || []);
+        // Check for new contact in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const newContactId = urlParams.get('contactId');
+        if (newContactId && data) {
+          // Auto-select the new contact
+          formik.setFieldValue('contact', newContactId);
+          const found = data.find(c => c._id === newContactId);
+          if (found) {
+            formik.setFieldValue('email', found.email || '');
+            formik.setFieldValue('phone', found.phone || '');
+          }
+          // Remove params from URL
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        }
+      });
+  }, []);
 
   const validationSchema = Yup.object({
-    customerName: Yup.string()
-      .required('Customer Name is required')
-      .min(3, 'Customer Name must be at least 3 characters')
-      .max(50, 'Customer Name must not exceed 50 characters'),
+    contact: Yup.string()
+      .required('Contact is required')
+      .min(3, 'Contact must be at least 3 characters')
+      .max(50, 'Contact must not exceed 50 characters'),
     email: Yup.string()
       .email('Please enter a valid email address')
       .required('Email is required')
@@ -94,7 +121,7 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
 
   const formik = useFormik({
     initialValues: initialValues || {
-      customerName: '',
+      contact: '',
       email: '',
       phone: '',
       ticketId: '',
@@ -238,23 +265,56 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                   </Stack>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Customer Name"
-                        name="customerName"
-                        value={formik.values.customerName || ''}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.customerName && Boolean(formik.errors.customerName)}
-                        helperText={formik.touched.customerName && formik.errors.customerName}
-                        placeholder="Enter customer name (3-50 characters)"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            bgcolor: 'white'
-                          }
-                        }}
-                      />
+                      <FormControl fullWidth>
+                        <InputLabel>Contact</InputLabel>
+                        <Select
+                          name="contact"
+                          value={formik.values.contact || ''}
+                          onChange={e => {
+                            const selectedId = e.target.value;
+                            formik.setFieldValue('contact', selectedId);
+                            const found = contacts.find(c => c._id === selectedId);
+                            if (found) {
+                              formik.setFieldValue('email', found.email || '');
+                              formik.setFieldValue('phone', found.phone || '');
+                              setShowAddContact(false);
+                            } else {
+                              setShowAddContact(true);
+                            }
+                          }}
+                          onBlur={formik.handleBlur}
+                          error={formik.touched.contact && Boolean(formik.errors.contact)}
+                          displayEmpty
+                        >
+                          <MenuItem value="">
+                            <em>Select contact</em>
+                          </MenuItem>
+                          {contacts.map(contact => (
+                            <MenuItem key={contact._id} value={contact._id}>
+                              {contact.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {formik.touched.contact && formik.errors.contact && (
+                          <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, ml: 2 }}>
+                            {formik.errors.contact}
+                          </Typography>
+                        )}
+                      </FormControl>
+                      {showAddContact && (
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          sx={{ mt: 1 }}
+                          onClick={() => {
+                            // Pass returnUrl so we can come back to this ticket page
+                            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                            router.push(`/contacts/create?returnUrl=${returnUrl}`);
+                          }}
+                        >
+                          Add Contact
+                        </Button>
+                      )}
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <TextField
@@ -300,11 +360,7 @@ export default function TicketForm({ initialValues, onSubmit, mode = 'create' })
                         label="Phone Number"
                         name="phone"
                         value={formik.values.phone || ''}
-                        onChange={(e) => {
-                          // Only allow digits and limit to 10 characters
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                          formik.setFieldValue('phone', value);
-                        }}
+                        onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.touched.phone && Boolean(formik.errors.phone)}
                         helperText={formik.touched.phone && formik.errors.phone}

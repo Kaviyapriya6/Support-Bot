@@ -35,7 +35,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
   const pathname = usePathname();
 
   const menuItems = [
-    { href: '/', icon: <Dashboard />, label: 'Dashboard' },
+    { href: '/dashboard', icon: <Dashboard />, label: 'Dashboard' },
     { href: '/contacts', icon: <People />, label: 'Contacts' },
     { href: '/company', icon: <SmartToy />, label: 'Company' },
     { href: '/tickets', icon: <ConfirmationNumber />, label: 'Tickets' },
