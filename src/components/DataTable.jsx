@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
+
+
 import {
   Box,
   Typography,
@@ -37,6 +38,7 @@ import {
   Search as SearchIcon,
   FilterList as FilterIcon
 } from '@mui/icons-material';
+import { useState, useMemo, useEffect } from 'react';
 
 export default function DataTable({
   title,
@@ -53,6 +55,29 @@ export default function DataTable({
   entityType = 'item',
   showView = false
 }) {
+  // For agent assignment dropdown
+  const [agents, setAgents] = useState([]);
+  useEffect(() => {
+    // Only fetch agents if assignedTo column is present
+    if (columns.some(col => col.field === 'assignedTo')) {
+      fetch('/api/agents')
+        .then(res => res.json())
+        .then(data => setAgents(data || []));
+    }
+  }, [columns]);
+
+  // Inline update for assignedTo
+  const handleAssignAgent = async (ticketId, newAssigned) => {
+    try {
+      await fetch(`/api/tickets/${ticketId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignedTo: newAssigned })
+      });
+    } catch (err) {
+      alert('Failed to assign agent');
+    }
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({});
   const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null });
@@ -93,7 +118,41 @@ export default function DataTable({
   // Render cell content based on column configuration
   const renderCellContent = (item, column) => {
     const value = getNestedValue(item, column.field);
-
+    // Inline agent assignment for assignedTo column
+    if (column.field === 'assignedTo') {
+      return (
+        <FormControl size="small" fullWidth>
+          <Select
+            multiple
+            value={Array.isArray(value) ? value : value ? [value] : []}
+            onChange={async (e) => {
+              const newAssigned = e.target.value;
+              await handleAssignAgent(item._id, newAssigned);
+              // Optionally, update UI optimistically
+              if (item.assignedTo) item.assignedTo = newAssigned;
+            }}
+            renderValue={(selected) =>
+              selected.length === 0
+                ? <em>-</em>
+                : selected.map(val => {
+                    const agent = agents.find(a => a.email === val || a._id === val);
+                    return agent ? agent.email : val;
+                  }).join(', ')
+            }
+            displayEmpty
+          >
+            <MenuItem disabled value="">
+              <em>Select agent(s)</em>
+            </MenuItem>
+            {agents.map(agent => (
+              <MenuItem key={agent._id} value={agent.email}>
+                {agent.email}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      );
+    }
     switch (column.type) {
       case 'avatar':
         return (

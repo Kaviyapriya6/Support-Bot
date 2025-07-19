@@ -5,7 +5,7 @@ export async function GET(req, context) {
   await dbConnect();
   const { params } = context;
   const resolvedParams = await params;
-  const ticket = await Ticket.findById(resolvedParams.id).populate('emails');
+  const ticket = await Ticket.findById(resolvedParams.id);
   if (!ticket) {
     return Response.json({ error: 'Not found' }, { status: 404 });
   }
@@ -17,17 +17,18 @@ export async function PUT(req, context) {
   const { params } = context;
   const resolvedParams = await params;
   const data = await req.json();
-
+  // assignedTo should be an array
+  if (data.assignedTo && !Array.isArray(data.assignedTo)) {
+    data.assignedTo = [data.assignedTo];
+  }
   const updatedTicket = await Ticket.findByIdAndUpdate(
     resolvedParams.id,
     data,
     { new: true, runValidators: true }
   );
-
   if (!updatedTicket) {
     return Response.json({ error: 'Not found' }, { status: 404 });
   }
-
   return Response.json(updatedTicket);
 }
 

@@ -11,6 +11,7 @@ const TicketSchema = new mongoose.Schema({
   subject: String,
   description: String,
   fileName: String,
+  assignedTo: [{ type: String }], // Array of agent emails or IDs
   emails: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Email' }],
 }, { timestamps: true });
 
