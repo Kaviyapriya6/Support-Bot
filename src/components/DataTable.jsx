@@ -243,14 +243,25 @@ export default function DataTable({
             </TableHead>
             <TableBody>
               {filteredData.map((item) => (
-                <TableRow key={item._id} hover>
+                <TableRow 
+                  key={item._id} 
+                  hover 
+                  onClick={() => onView && onView(item._id)}
+                  sx={{ 
+                    cursor: onView ? 'pointer' : 'default',
+                    '&:hover': onView ? { backgroundColor: '#f5f5f5' } : {}
+                  }}
+                >
                   {columns.map((column) => (
                     <TableCell key={column.field}>
                       {renderCellContent(item, column)}
                     </TableCell>
                   ))}
                   <TableCell align="right">
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                    <Box 
+                      sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {showView && onView && (
                         <IconButton
                           size="small"

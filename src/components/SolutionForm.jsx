@@ -58,18 +58,18 @@ import {
   Visibility
 } from '@mui/icons-material';
 
-export default function CMSEditor() {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [selectedHierarchy, setSelectedHierarchy] = useState('');
-  const [tags, setTags] = useState([]);
+export default function CMSEditor({ onSubmit, initialData = {}, isEdit = false }) {
+  const [title, setTitle] = useState(initialData.title || '');
+  const [content, setContent] = useState(initialData.content || '');
+  const [selectedHierarchy, setSelectedHierarchy] = useState(initialData.hierarchy || '');
+  const [tags, setTags] = useState(initialData.tags || []);
   const [tagInput, setTagInput] = useState('');
-  const [seoTitle, setSeoTitle] = useState('');
-  const [seoDescription, setSeoDescription] = useState('');
+  const [seoTitle, setSeoTitle] = useState(initialData.seoTitle || '');
+  const [seoDescription, setSeoDescription] = useState(initialData.seoDescription || '');
   const [templatesExpanded, setTemplatesExpanded] = useState(true);
   const [propertiesExpanded, setPropertiesExpanded] = useState(true);
   const [seoExpanded, setSeoExpanded] = useState(true);
-  const [isPublished, setIsPublished] = useState(false);
+  const [isPublished, setIsPublished] = useState(initialData.isPublished || false);
   const [notification, setNotification] = useState({ open: false, message: '', type: 'success' });
   
   // Dialog states
@@ -197,8 +197,34 @@ export default function CMSEditor() {
     showNotification('Table inserted successfully');
   };
 
-  const handleSave = () => {
-    showNotification('Article saved successfully');
+  const handleSave = async () => {
+    if (!title.trim() || !content.trim() || !selectedHierarchy) {
+      showNotification('Please fill all required fields', 'error');
+      return;
+    }
+
+    // Prepare the article data
+    const articleData = {
+      title,
+      content,
+      hierarchy: selectedHierarchy,
+      tags,
+      seoTitle,
+      seoDescription,
+      published: false,
+      createdAt: isEdit ? initialData.createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      if (onSubmit) {
+        await onSubmit(articleData);
+      } else {
+        showNotification('Article saved successfully');
+      }
+    } catch (err) {
+      showNotification('Error saving article', 'error');
+    }
   };
 
   const handlePublish = async () => {
@@ -217,21 +243,25 @@ export default function CMSEditor() {
       seoTitle,
       seoDescription,
       published: true,
-      createdAt: new Date().toISOString(),
+      createdAt: isEdit ? initialData.createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
-    // Send to backend
     try {
-      const res = await fetch('/api/solutions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(articleData),
-      });
-      if (res.ok) {
-        showNotification('Article published successfully');
-        // Optionally, clear the form or redirect
+      if (onSubmit) {
+        await onSubmit(articleData);
       } else {
-        showNotification('Failed to publish article', 'error');
+        // Default behavior - send to backend
+        const res = await fetch('/api/solutions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(articleData),
+        });
+        if (res.ok) {
+          showNotification('Article published successfully');
+        } else {
+          showNotification('Failed to publish article', 'error');
+        }
       }
     } catch (err) {
       showNotification('Error publishing article', 'error');
@@ -368,7 +398,7 @@ For questions not covered here, please contact [support information].`;
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="h6" sx={{ mr: 2 }}>
-              Article Editor
+              {isEdit ? 'Edit Article' : 'Article Editor'}
             </Typography>
             {isPublished && (
               <Chip 
@@ -394,7 +424,7 @@ For questions not covered here, please contact [support information].`;
               onClick={handleSave}
               startIcon={<Save />}
             >
-              Save
+              {isEdit ? 'Update' : 'Save'}
             </Button>
             <Button 
               variant="contained" 
@@ -402,7 +432,7 @@ For questions not covered here, please contact [support information].`;
               onClick={handlePublish}
               disabled={!title.trim() || !content.trim()}
             >
-              {isPublished ? 'Update' : 'Publish'}
+              {isEdit ? 'Update & Publish' : (isPublished ? 'Update' : 'Publish')}
             </Button>
           </Box>
         </Box>

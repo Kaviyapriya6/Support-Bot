@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../contexts/AuthContext';
 import {
   AppBar,
   Toolbar,
@@ -29,11 +30,13 @@ import {
   Email,
   Person,
   Business,
-  PersonOutline
+  PersonOutline,
+  Logout
 } from '@mui/icons-material';
 
 const Navbar = () => {
   const pathname = usePathname();
+  const { logout, user } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const router = useRouter();
@@ -45,7 +48,7 @@ const handleNewClose = () => setNewMenuAnchor(null);
   // Function to get page title based on pathname
   const getPageTitle = () => {
     const pageTitles = {
-      '/': 'Dashboard',
+      '/dashboard': 'Dashboard',
       '/contacts': 'Contacts',
       '/contacts/create': 'Create Contact',
       '/tickets': 'Tickets',
@@ -83,6 +86,11 @@ const handleNewClose = () => setNewMenuAnchor(null);
   const handleClose = () => {
     setAnchorEl(null);
     setUserMenuAnchor(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleClose();
   };
 
   return (
@@ -280,7 +288,7 @@ const handleNewClose = () => setNewMenuAnchor(null);
                   fontWeight: 600,
                 }}
               >
-                O
+                {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
               </Avatar>
             </IconButton>
             <Menu
@@ -291,9 +299,18 @@ const handleNewClose = () => setNewMenuAnchor(null);
                 sx: { minWidth: 180 },
               }}
             >
-              <MenuItem onClick={handleClose}>Profile</MenuItem>
-              <MenuItem onClick={handleClose}>Settings</MenuItem>
-              <MenuItem onClick={handleClose}>Sign out</MenuItem>
+              <MenuItem onClick={handleClose}>
+                <AccountCircle sx={{ mr: 1 }} />
+                Profile
+              </MenuItem>
+              <MenuItem onClick={handleClose}>
+                <Settings sx={{ mr: 1 }} />
+                Settings
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <Logout sx={{ mr: 1 }} />
+                Sign out
+              </MenuItem>
             </Menu>
           </Box>
         </Box>

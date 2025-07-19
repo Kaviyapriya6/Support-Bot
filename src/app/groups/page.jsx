@@ -173,6 +173,10 @@ export default function GroupsPage() {
     fetchGroups();
   }, []);
 
+  const handleView = (id) => {
+    router.push(`/groups/${id}`);
+  };
+
   const handleAdd = () => {
     router.push('/groups/create');
   };
@@ -228,6 +232,7 @@ export default function GroupsPage() {
       onAdd={handleAdd}
       onEdit={handleEdit}
       onDelete={handleDelete}
+      onView={handleView}
       searchFields={searchFields}
       entityType="group"
     />

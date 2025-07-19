@@ -3,7 +3,9 @@
 import './globals.css';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
-import { useState } from 'react';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 
@@ -44,40 +46,80 @@ const theme = createTheme({
   },
 });
 
-export default function RootLayout({ children }) {
+function AppContent({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const pathname = usePathname();
+  const { user, loading } = useAuth();
 
+  // Routes that should not show sidebar/navbar
+  const publicRoutes = ['/', '/auth/login', '/auth/signup'];
+  const isPublicRoute = publicRoutes.includes(pathname);
+
+  // Show loading state while checking authentication
+  if (loading && !isPublicRoute) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh' 
+      }}>
+        <div>Loading...</div>
+      </Box>
+    );
+  }
+
+  // For public routes (landing, auth pages), show full-width layout
+  if (isPublicRoute) {
+    return (
+      <Box sx={{ minHeight: '100vh' }}>
+        {children}
+      </Box>
+    );
+  }
+
+  // For protected routes, show sidebar and navbar
+  return (
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* Sidebar */}
+      <Sidebar 
+        isCollapsed={sidebarCollapsed} 
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+      />
+      
+      {/* Main content area */}
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Navbar */}
+        <Navbar />
+        
+        {/* Page content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            overflow: 'auto',
+            p: 3,
+            backgroundColor: 'background.default',
+          }}
+        >
+          {children}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Box sx={{ display: 'flex', height: '100vh' }}>
-            {/* Sidebar */}
-            <Sidebar 
-              isCollapsed={sidebarCollapsed} 
-              onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
-            />
-            
-            {/* Main content area */}
-            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-              {/* Navbar */}
-              <Navbar />
-              
-              {/* Page content */}
-              <Box
-                component="main"
-                sx={{
-                  flexGrow: 1,
-                  overflow: 'auto',
-                  p: 3,
-                  backgroundColor: 'background.default',
-                }}
-              >
-                {children}
-              </Box>
-            </Box>
-          </Box>
+          <AuthProvider>
+            <AppContent>
+              {children}
+            </AppContent>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

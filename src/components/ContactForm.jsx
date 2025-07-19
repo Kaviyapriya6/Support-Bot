@@ -12,12 +12,15 @@ import * as Yup from 'yup';
 
 const ContactForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
   const router = useRouter();
-  const [imagePreview, setImagePreview] = useState(initialData.profileImage || null);
+  // Restore form data from sessionStorage if available
+  const savedFormData = typeof window !== 'undefined' ? sessionStorage.getItem('contactFormData') : null;
+  const parsedFormData = savedFormData ? JSON.parse(savedFormData) : {};
+  const [imagePreview, setImagePreview] = useState(parsedFormData.profileImage || initialData.profileImage || null);
   const [currentTag, setCurrentTag] = useState('');
   const [serverError, setServerError] = useState('');
   const [companies, setCompanies] = useState([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
-  const [selectedCompany, setSelectedCompany] = useState(initialData.company || '');
+  const [selectedCompany, setSelectedCompany] = useState(parsedFormData.company || initialData.company || '');
 
   // Fetch companies from API
   useEffect(() => {
@@ -43,14 +46,12 @@ const ContactForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
     fetchCompanies();
   }, []);
 
-  // Check for newly created company from URL params
+  // Check for newly created company from URL params and restore form data
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const newCompanyId = urlParams.get('companyId');
     const newCompanyName = urlParams.get('companyName');
-    
     if (newCompanyId && newCompanyName) {
-      // Add the new company to the list if it's not already there
       setCompanies(prev => {
         const exists = prev.some(company => company._id === newCompanyId);
         if (!exists) {
@@ -58,25 +59,38 @@ const ContactForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
         }
         return prev;
       });
-      
-      // Set the selected company
       setSelectedCompany(newCompanyName);
-      
       // Clear URL params
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }
+    // Restore form data from sessionStorage if available
+    if (savedFormData) {
+      sessionStorage.removeItem('contactFormData');
+    }
   }, []);
 
   const handleCreateNewCompany = () => {
-    // Store current form data in sessionStorage before navigation
+    // Save current form data to sessionStorage
+    const formData = {
+      name: document.querySelector('input[name="name"]').value,
+      title: document.querySelector('input[name="title"]').value,
+      company: selectedCompany,
+      email: document.querySelector('input[name="email"]').value,
+      phone: document.querySelector('input[name="phone"]').value,
+      workPhone: document.querySelector('input[name="workPhone"]').value,
+      twitter: document.querySelector('input[name="twitter"]').value,
+      facebook: document.querySelector('input[name="facebook"]').value,
+      tags: currentTag ? [currentTag] : [],
+      timezone: document.querySelector('input[name="timezone"]')?.value || '',
+      profileImage: imagePreview,
+    };
+    sessionStorage.setItem('contactFormData', JSON.stringify(formData));
+    // Navigate to company creation with return URL
     const currentPath = window.location.pathname;
     const isEditMode = currentPath.includes('/edit/');
     const contactId = isEditMode ? currentPath.split('/').pop() : null;
-    
-    // Navigate to company creation with return URL
     const returnUrl = encodeURIComponent(window.location.pathname);
-    console.log('Navigating to company creation with returnUrl:', returnUrl);
     router.push(`/company/create?returnUrl=${returnUrl}&mode=contact&contactId=${contactId || ''}`);
   };
 
@@ -137,17 +151,17 @@ const ContactForm = ({ onSubmit, initialData = {}, isEdit = false }) => {
       <Formik
         enableReinitialize={true}
         initialValues={{
-          name: initialData.name || '',
-          title: initialData.title || '',
-          company: selectedCompany || initialData.company || '',
-          email: initialData.email || '',
-          phone: initialData.phone || '',
-          workPhone: initialData.workPhone || '',
-          twitter: initialData.twitter || '',
-          facebook: initialData.facebook || '',
-          tags: initialData.tags || [],
-          timezone: initialData.timezone || '',
-          profileImage: initialData.profileImage || null,
+          name: parsedFormData.name || initialData.name || '',
+          title: parsedFormData.title || initialData.title || '',
+          company: selectedCompany || parsedFormData.company || initialData.company || '',
+          email: parsedFormData.email || initialData.email || '',
+          phone: parsedFormData.phone || initialData.phone || '',
+          workPhone: parsedFormData.workPhone || initialData.workPhone || '',
+          twitter: parsedFormData.twitter || initialData.twitter || '',
+          facebook: parsedFormData.facebook || initialData.facebook || '',
+          tags: parsedFormData.tags || initialData.tags || [],
+          timezone: parsedFormData.timezone || initialData.timezone || '',
+          profileImage: parsedFormData.profileImage || initialData.profileImage || null,
         }}
         validationSchema={validationSchema}
         onSubmit={async (values, { setSubmitting }) => {

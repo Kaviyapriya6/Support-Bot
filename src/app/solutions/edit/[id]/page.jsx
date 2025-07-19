@@ -1,14 +1,14 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Box, Alert, CircularProgress, Typography, Button } from '@mui/material';
-import SolutionForm from '../../../components/SolutionForm';
+import SolutionForm from '../../../../components/SolutionForm';
 
 const EditSolutionPage = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const solutionId = searchParams.get('id');
+  const params = useParams();
+  const solutionId = params.id;
   
   const [solution, setSolution] = useState(null);
   const [loading, setLoading] = useState(true);
